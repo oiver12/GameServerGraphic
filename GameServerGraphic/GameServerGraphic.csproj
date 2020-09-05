@@ -57,11 +57,13 @@
     <Reference Include="Pathfinding.ClipperLib">
       <HintPath>AStarProgram\Plugins\Clipper\Pathfinding.ClipperLib.dll</HintPath>
     </Reference>
-    <Reference Include="Pathfinding.Ionic.Zip.Reduced">
-      <HintPath>..\..\GameServer\GameServer\AStar\Plugins\DotNetZip\Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
+    <Reference Include="Pathfinding.Ionic.Zip.Reduced, Version=1.9.1.9000, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>AStarProgram\Plugins\DotNetZip\Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
     </Reference>
-    <Reference Include="Pathfinding.Poly2Tri">
-      <HintPath>..\..\GameServer\GameServer\AStar\Plugins\Poly2Tri\Pathfinding.Poly2Tri.dll</HintPath>
+    <Reference Include="Pathfinding.Poly2Tri, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>AStarProgram\Plugins\Poly2Tri\Pathfinding.Poly2Tri.dll</HintPath>
     </Reference>
     <Reference Include="Renci.SshNet, Version=2016.1.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <HintPath>..\packages\SSH.NET.2016.1.0\lib\net40\Renci.SshNet.dll</HintPath>
