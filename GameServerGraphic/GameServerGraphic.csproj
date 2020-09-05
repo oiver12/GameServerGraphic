@@ -1,0 +1,267 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{362EACDC-4BEA-42B7-BE9B-37D375FAA756}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>GameServerGraphic</RootNamespace>
+    <AssemblyName>GameServerGraphic</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.3.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.3.1\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf, Version=3.6.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Protobuf.3.6.1\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4, Version=1.1.11.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Compression.LZ4.1.1.11\lib\net46\K4os.Compression.LZ4.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4.Streams, Version=1.1.11.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Compression.LZ4.Streams.1.1.11\lib\net46\K4os.Compression.LZ4.Streams.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Hash.xxHash, Version=1.0.6.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Hash.xxHash.1.0.6\lib\net46\K4os.Hash.xxHash.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data, Version=8.0.21.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.0.21\lib\net48\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Pathfinding.ClipperLib">
+      <HintPath>AStarProgram\Plugins\Clipper\Pathfinding.ClipperLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Pathfinding.Ionic.Zip.Reduced">
+      <HintPath>..\..\GameServer\GameServer\AStar\Plugins\DotNetZip\Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
+    </Reference>
+    <Reference Include="Pathfinding.Poly2Tri">
+      <HintPath>..\..\GameServer\GameServer\AStar\Plugins\Poly2Tri\Pathfinding.Poly2Tri.dll</HintPath>
+    </Reference>
+    <Reference Include="Renci.SshNet, Version=2016.1.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
+      <HintPath>..\packages\SSH.NET.2016.1.0\lib\net40\Renci.SshNet.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.4.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.6.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Ubiety.Dns.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.0.21\lib\net48\Ubiety.Dns.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Zstandard.Net, Version=1.1.7.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.0.21\lib\net48\Zstandard.Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AStarProgram\AI\AIBase.cs" />
+    <Compile Include="AStarProgram\AI\IAstarAI.cs" />
+    <Compile Include="AStarProgram\AI\RichPath.cs" />
+    <Compile Include="AStarProgram\Core\astarclasses.cs" />
+    <Compile Include="AStarProgram\Core\AstarData.cs" />
+    <Compile Include="AStarProgram\Core\AstarMath.cs" />
+    <Compile Include="AStarProgram\Core\AstarPath.cs" />
+    <Compile Include="AStarProgram\Core\Misc\ArrayPool.cs" />
+    <Compile Include="AStarProgram\Core\Misc\BinaryHeap.cs" />
+    <Compile Include="AStarProgram\Core\Misc\EditorResourceHelper.cs" />
+    <Compile Include="AStarProgram\Core\Misc\GraphEditorBase.cs" />
+    <Compile Include="AStarProgram\Core\Misc\GraphUpdateProcessor.cs" />
+    <Compile Include="AStarProgram\Core\Misc\GraphUtilities.cs" />
+    <Compile Include="AStarProgram\Core\Misc\HierarchicalGraph.cs" />
+    <Compile Include="AStarProgram\Core\Misc\Int3.cs" />
+    <Compile Include="AStarProgram\Core\Misc\ListPool.cs" />
+    <Compile Include="AStarProgram\Core\Misc\MovementUtilities.cs" />
+    <Compile Include="AStarProgram\Core\Misc\ObjectPool.cs" />
+    <Compile Include="AStarProgram\Core\Misc\PathInterpolator.cs" />
+    <Compile Include="AStarProgram\Core\Misc\PathPool.cs" />
+    <Compile Include="AStarProgram\Core\Misc\PathProcessor.cs" />
+    <Compile Include="AStarProgram\Core\Misc\PathReturnQueue.cs" />
+    <Compile Include="AStarProgram\Core\Misc\StackPool.cs" />
+    <Compile Include="AStarProgram\Core\Misc\ThreadControlQueue.cs" />
+    <Compile Include="AStarProgram\Core\Misc\WindowsStoreCompatibility.cs" />
+    <Compile Include="AStarProgram\Core\Misc\WorkItemProcessor.cs" />
+    <Compile Include="AStarProgram\Core\Nodes\GraphNode.cs" />
+    <Compile Include="AStarProgram\Core\Path.cs" />
+    <Compile Include="AStarProgram\Core\PathHandler.cs" />
+    <Compile Include="AStarProgram\Core\Serialization\JsonSerializer.cs" />
+    <Compile Include="AStarProgram\Core\Serialization\SimpleZipReplacement.cs" />
+    <Compile Include="AStarProgram\Core\Serialization\TinyJson.cs" />
+    <Compile Include="AStarProgram\Generators\Base.cs" />
+    <Compile Include="AStarProgram\Generators\NavmeshBase.cs" />
+    <Compile Include="AStarProgram\Generators\NavMeshGenerator.cs" />
+    <Compile Include="AStarProgram\Generators\NodeClasses\TriangleMeshNode.cs" />
+    <Compile Include="AStarProgram\Generators\RecastGenerator.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\BBTree.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\EuclideanEmbedding.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\GraphTransform.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\GridLookup.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\NavmeshTile.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\PointKDTree.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelClasses.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelContour.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelMesh.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelPolygonClipper.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelRasterization.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelRegion.cs" />
+    <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelUtility.cs" />
+    <Compile Include="AStarProgram\PackageTools\UniqueComponentAttribute.cs" />
+    <Compile Include="AStarProgram\PackageTools\VersionedMonoBehaviour.cs" />
+    <Compile Include="AStarProgram\Pathfinders\ABPath.cs" />
+    <Compile Include="AStarProgram\Pathfinders\ConstantPath.cs" />
+    <Compile Include="AStarProgram\Pathfinders\FleePath.cs" />
+    <Compile Include="AStarProgram\Pathfinders\FloodPath.cs" />
+    <Compile Include="AStarProgram\Pathfinders\FloodPathTracer.cs" />
+    <Compile Include="AStarProgram\Pathfinders\MultiTargetPath.cs" />
+    <Compile Include="AStarProgram\Pathfinders\RandomPath.cs" />
+    <Compile Include="AStarProgram\Pathfinders\XPath.cs" />
+    <Compile Include="AStarProgram\RelevantGraphSurface.cs" />
+    <Compile Include="AStarProgram\AI\RichAI.cs" />
+    <Compile Include="AStarProgram\Seeker.cs" />
+    <Compile Include="AStarProgram\TurnBased\BlockManager.cs" />
+    <Compile Include="AStarProgram\TurnBased\SingleNodeBlocker.cs" />
+    <Compile Include="AStarProgram\Utilities\AstarChecksum.cs" />
+    <Compile Include="AStarProgram\Utilities\AstarMemory.cs" />
+    <Compile Include="AStarProgram\Utilities\AstarParallel.cs" />
+    <Compile Include="AStarProgram\Utilities\DotNetReplacements.cs" />
+    <Compile Include="AStarProgram\Utilities\Funnel.cs" />
+    <Compile Include="AStarProgram\Utilities\GraphUpdateUtilities.cs" />
+    <Compile Include="AStarProgram\Utilities\PathUtilities.cs" />
+    <Compile Include="AStarProgram\Utilities\ProfileHelper.cs" />
+    <Compile Include="GameServer\BaseClassGameObject.cs" />
+    <Compile Include="GameServer\Bounds.cs" />
+    <Compile Include="GameServer\Constants.cs" />
+    <Compile Include="GameServer\Debug.cs" />
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GameServer\DeserializeObjects.cs" />
+    <Compile Include="GameServer\GameLogic.cs" />
+    <Compile Include="GameServer\GameServerRandom.cs" />
+    <Compile Include="GameServer\LayerMask.cs" />
+    <Compile Include="GameServer\Mathf.cs" />
+    <Compile Include="GameServer\Matrix3x2.cs" />
+    <Compile Include="GameServer\Matrix4x4.cs" />
+    <Compile Include="GameServer\MonoBehaviour.cs" />
+    <Compile Include="GameServer\NormalComponentsObject.cs" />
+    <Compile Include="GameServer\Quaternion.cs" />
+    <Compile Include="GameServer\Timing.cs" />
+    <Compile Include="GameServer\Transform.cs" />
+    <Compile Include="GameServer\TroopComponents.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="GameServer\Rect.cs" />
+    <Compile Include="GameServer\Time.cs" />
+    <Compile Include="GameServer\Vector2.cs" />
+    <Compile Include="GameServer\Vector3.cs" />
+    <Compile Include="GameServer\Vector4.cs" />
+    <Compile Include="Unity\ArcherAttack.cs" />
+    <Compile Include="Unity\ArcherCommander.cs" />
+    <Compile Include="Unity\AttackingSystem.cs" />
+    <Compile Include="Unity\BonusClasses.cs" />
+    <Compile Include="Unity\Client.cs" />
+    <Compile Include="Unity\CollisionDetector.cs" />
+    <Compile Include="Unity\CommanderScript.cs" />
+    <Compile Include="Unity\Constants.cs" />
+    <Compile Include="Unity\CrossBow.cs" />
+    <Compile Include="Unity\Database.cs" />
+    <Compile Include="Unity\FormationManager.cs" />
+    <Compile Include="Unity\FormationSpecsTable.cs" />
+    <Compile Include="Unity\GroupMovement.cs" />
+    <Compile Include="Unity\KDTree.cs" />
+    <Compile Include="Unity\Matchmaking.cs" />
+    <Compile Include="Unity\MultiplierManager.cs" />
+    <Compile Include="Unity\MySQL.cs" />
+    <Compile Include="Unity\NetworkManager.cs" />
+    <Compile Include="Unity\NumercisTOVector3.cs" />
+    <Compile Include="Unity\Packet.cs" />
+    <Compile Include="Unity\Player.cs" />
+    <Compile Include="Unity\PlayerController.cs" />
+    <Compile Include="Unity\Rect3D.cs" />
+    <Compile Include="Unity\Server.cs" />
+    <Compile Include="Unity\ServerHandle.cs" />
+    <Compile Include="Unity\ServerSend.cs" />
+    <Compile Include="Unity\ThreadManager.cs" />
+    <Compile Include="Unity\Troops.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
