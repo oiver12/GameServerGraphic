@@ -13,7 +13,6 @@ namespace GameServerGraphic
 {
 	public partial class Form1 : Form
 	{
-
 		public static Timing instanceTiming;
 		static AstarPath astarpath;
 		static bool isRunning;
@@ -21,20 +20,20 @@ namespace GameServerGraphic
 		public Form1()
 		{
 			InitializeComponent();
-			pictureBox1.ImageLocation = @"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\Test1.png";
+			pictureBox1.ImageLocation = @"..\..\Test1.png";
 			pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
 			Debug.Log(pictureBox1.ImageLocation);
 
 
 			byte[] astardatabytes;
-			using (var stream = new FileStream(@"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\GraphCache1.bytes", FileMode.Open))
+			using (var stream = new FileStream(@"..\..\GraphCache1.bytes", FileMode.Open))
 			{
 				astardatabytes = new byte[(int)stream.Length];
 				stream.Read(astardatabytes, 0, (int)stream.Length);
 			}
 
 			byte[] formationManagerBytes;
-			using (var stream = new FileStream(@"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\FormationManager.bytes", FileMode.Open))
+			using (var stream = new FileStream(@"..\..\FormationManager.bytes", FileMode.Open))
 			{
 				formationManagerBytes = new byte[(int)stream.Length];
 				stream.Read(formationManagerBytes, 0, (int)stream.Length);
@@ -42,7 +41,7 @@ namespace GameServerGraphic
 			FormationManager.formations = DeserializeObjects.deserializeFormationManager(formationManagerBytes);
 
 			byte[] troopData;
-			using (var stream = new FileStream(@"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\TroopsData.bytes", FileMode.Open))
+			using (var stream = new FileStream(@"C:\Users\Oliver Baumgartner\Source\Repos\oiver12\GameServerGraphic\GameServerGraphic\TroopsData.bytes", FileMode.Open))
 			{
 				troopData = new byte[(int)stream.Length];
 				stream.Read(troopData, 0, (int)stream.Length);
