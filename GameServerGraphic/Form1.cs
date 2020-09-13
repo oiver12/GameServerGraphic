@@ -21,20 +21,20 @@ namespace GameServerGraphic
 		public Form1()
 		{
 			InitializeComponent();
-			pictureBox1.ImageLocation = @"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\Test1.png";
+			pictureBox1.ImageLocation = @"..\..\Test1.png";
 			pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
 			Debug.Log(pictureBox1.ImageLocation);
 
 
 			byte[] astardatabytes;
-			using (var stream = new FileStream(@"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\GraphCache1.bytes", FileMode.Open))
+			using (var stream = new FileStream(@"..\..\GraphCache1.bytes", FileMode.Open))
 			{
 				astardatabytes = new byte[(int)stream.Length];
 				stream.Read(astardatabytes, 0, (int)stream.Length);
 			}
 
 			byte[] formationManagerBytes;
-			using (var stream = new FileStream(@"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\FormationManager.bytes", FileMode.Open))
+			using (var stream = new FileStream(@"..\..\FormationManager.bytes", FileMode.Open))
 			{
 				formationManagerBytes = new byte[(int)stream.Length];
 				stream.Read(formationManagerBytes, 0, (int)stream.Length);
