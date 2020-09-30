@@ -556,11 +556,10 @@ namespace Pathfinding {
 			//	currentPosition = tr.position;
 			//	if (controller.isGrounded) verticalVelocity = 0;
 			//} else {
-				// Use Transform, Rigidbody, Rigidbody2D or nothing at all (if updatePosition = false)
+			// Use Transform, Rigidbody, Rigidbody2D or nothing at all (if updatePosition = false)
 				float lastElevation;
-				movementPlane.ToPlane(currentPosition, out lastElevation);
+			movementPlane.ToPlane(currentPosition, out lastElevation);
 				currentPosition = nextPosition + accumulatedMovementDelta;
-
 				// Position the character on the ground
 				//if (usingGravity) currentPosition = RaycastPosition(currentPosition, lastElevation);
 				positionDirty1 = true;

@@ -1,4 +1,5 @@
 ﻿using Pathfinding;
+using GameServerGraphic;
 
 namespace GameServer
 {
@@ -17,6 +18,7 @@ namespace GameServer
 			transform = tr;
 			transform.troopObject = this;
 			seeker = sk;
+			seeker.Awake();
 			richAI = rich;
 			richAI.OnEnable(this);
 			richAI.Start();
@@ -27,6 +29,9 @@ namespace GameServer
 			attackingSystem = _attackingSystem;
 			//attackingSystem.Start(this);
 			seeker.traversableTags = ~0;
+#if graphic
+			Form1.AddTroop(transform);
+#endif
 		}
 
 		public void Update()
@@ -34,6 +39,8 @@ namespace GameServer
 			playerController.Update();
 			richAI.Update();
 			attackingSystem.Update();
+			//render
+
 		}
 
 		public NormalComponentsObject GetParentNormalComponents()

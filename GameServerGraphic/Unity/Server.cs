@@ -27,7 +27,9 @@ class Server
 		Port = _port;
 
 		InitializeMySQLServer();
+#if graphic
 		Debug.Log("Starting server...");
+#endif
 		InitializeServerData();
 		tcpListener = new TcpListener(IPAddress.Any, Port);
 		tcpListener.Start();

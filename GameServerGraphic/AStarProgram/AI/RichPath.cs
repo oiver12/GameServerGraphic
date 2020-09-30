@@ -75,8 +75,10 @@ namespace Pathfinding {
 					uint currentGraphIndex = nodes[sIndex].GraphIndex;
 
 
-					for (; i < nodes.Count; i++) {
-						if (nodes[i].GraphIndex != currentGraphIndex) {
+					for (; i < nodes.Count; i++)
+					{
+						if (nodes[i].GraphIndex != currentGraphIndex /*&& !(nodes[i] is NodeLink3Node)*/)
+						{
 							break;
 						}
 					}
@@ -528,7 +530,6 @@ namespace Pathfinding {
 			float bestDistance = float.PositiveInfinity;
 			Vector3 bestPoint = position;
 			TriangleMeshNode bestNode = null;
-
 			while (que.Count > 0) {
 				var node = que.Dequeue();
 
@@ -537,20 +538,23 @@ namespace Pathfinding {
 				// might slow down when traversing slopes
 				var closest = node.ClosestPointOnNodeXZ(position);
 				var dist = VectorMath.MagnitudeXZ(closest - position);
-
 				// Check if this node is any closer than the previous best node.
 				// Allow for a small margin to both avoid floating point errors and to allow
 				// moving past very small local minima.
-				if (dist <= bestDistance * 1.05f + 0.001f) {
-					if (dist < bestDistance) {
+				if (dist <= bestDistance * 1.05f + 0.001f)
+				{
+					if (dist < bestDistance)
+					{
 						bestDistance = dist;
 						bestPoint = closest;
 						bestNode = node;
 					}
 
-					for (int i = 0; i < node.connections.Length; i++) {
+					for (int i = 0; i < node.connections.Length; i++)
+					{
 						var neighbour = node.connections[i].node as TriangleMeshNode;
-						if (neighbour != null && !neighbour.TemporaryFlag1) {
+						if (neighbour != null && !neighbour.TemporaryFlag1)
+						{
 							neighbour.TemporaryFlag1 = true;
 							parent[neighbour] = node;
 							que.Enqueue(neighbour);
@@ -559,7 +563,6 @@ namespace Pathfinding {
 					}
 				}
 			}
-
 			for (int i = 0; i < allVisited.Count; i++) allVisited[i].TemporaryFlag1 = false;
 			allVisited.ClearFast();
 
@@ -569,13 +572,11 @@ namespace Pathfinding {
 			// because the navmesh surface may not line up with the ground
 			position.x = bestPoint.x;
 			position.z = bestPoint.z;
-
 			// Check if the closest node
 			// was on the path already or if we need to adjust it
 			if (closestNodeInPath == -1) {
 				// Reuse this list, because why not.
 				var prefix = navmeshClampList;
-
 				while (closestNodeInPath == -1) {
 					prefix.Add(bestNode);
 					bestNode = parent[bestNode];

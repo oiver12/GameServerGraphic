@@ -12,7 +12,7 @@ namespace GameServer
 		{
 			get
 			{
-				return Constants.MS_PER_TICK;
+				return Constants.TimeBetweenFrame;
 			}
 		}
 
@@ -29,7 +29,7 @@ namespace GameServer
 		{
 			get
 			{
-				return Constants.MS_PER_TICK;
+				return Constants.TimeBetweenFrame;
 			}
 		}
 

@@ -16,12 +16,17 @@ namespace GameServerGraphic
 		/// <summary>
 		/// Der Haupteinstiegspunkt für die Anwendung.
 		/// </summary>
+		/// 
+#if graphic
 		[STAThread]
+#endif
 		static void Main()
 		{
+#if graphic
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(new Form1());
+#endif
 			//byte[] astardatabytes;
 			//using (var stream = new FileStream(@"C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\GraphCache1.bytes", FileMode.Open))
 			//{

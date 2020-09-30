@@ -14,11 +14,40 @@ namespace GameServer
 		/// </summary>
 		/// <param name="message">String or object to be converted to string representation for display.</param>
 		/// <param name="context">Object to which the message applies.</param>
-		public static void Log(object message)
+		public static void Log(object message, bool printStackTrace = false)
 		{
 			AttachConsole(ATTACH_PARENT_PROCESS);
-			Console.WriteLine(message);
+			if (printStackTrace)
+			{
+				Console.Write(message + " at Position ");
+				Console.Write(GetStackTrace());
+			}
+			else
+				Console.WriteLine(message);
 			//Debug.logger.Log(LogType.Log, message);
+		}
+
+		static string GetStackTrace()
+		{
+			System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
+			return t.GetFrame(2).ToString();
+		}
+
+		static int GetNthIndex(string s, char t, int n)
+		{
+			int count = 0;
+			for (int i = 0; i < s.Length; i++)
+			{
+				if (s[i] == t)
+				{
+					count++;
+					if (count == n)
+					{
+						return i;
+					}
+				}
+			}
+			return -1;
 		}
 
 		/// <summary>

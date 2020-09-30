@@ -43,19 +43,23 @@ namespace Pathfinding {
 
 			// Loop through the path and split it into
 			// parts joined by links
-			for (int i = 0; i < nodes.Count; i++) {
-				if (nodes[i] is TriangleMeshNode/* || nodes[i] is GridNodeBase*/) {
+			for (int i = 0; i < nodes.Count; i++)
+			{
+				if (nodes[i] is TriangleMeshNode/* || nodes[i] is GridNodeBase*/)
+				{
 					var part = new PathPart();
 					part.startIndex = i;
 					uint currentGraphIndex = nodes[i].GraphIndex;
 
 					// Loop up until we find a node in another graph
 					// Ignore NodeLink3 nodes
-					//for (; i < nodes.Count; i++) {
-					//	if (nodes[i].GraphIndex != currentGraphIndex && !(nodes[i] is NodeLink3Node)) {
-					//		break;
-					//	}
-					//}
+					for (; i < nodes.Count; i++)
+					{
+						if (nodes[i].GraphIndex != currentGraphIndex /*&& !(nodes[i] is NodeLink3Node)*/)
+						{
+							break;
+						}
+					}
 
 					i--;
 					part.endIndex = i;
@@ -63,44 +67,52 @@ namespace Pathfinding {
 					// If this is the first part in the path, use the exact start point
 					// otherwise use the position of the node right before the start of this
 					// part which is likely the end of the link to this part
-					if (part.startIndex == 0) {
+					if (part.startIndex == 0)
+					{
 						part.startPoint = path.vectorPath[0];
-					} else {
-						part.startPoint = (Vector3)nodes[part.startIndex-1].position;
+					}
+					else
+					{
+						part.startPoint = (Vector3)nodes[part.startIndex - 1].position;
 					}
 
-					if (part.endIndex == nodes.Count-1) {
-						part.endPoint = path.vectorPath[path.vectorPath.Count-1];
-					} else {
-						part.endPoint = (Vector3)nodes[part.endIndex+1].position;
+					if (part.endIndex == nodes.Count - 1)
+					{
+						part.endPoint = path.vectorPath[path.vectorPath.Count - 1];
+					}
+					else
+					{
+						part.endPoint = (Vector3)nodes[part.endIndex + 1].position;
 					}
 
 					result.Add(part);
-				//} else if (NodeLink2.GetNodeLink(nodes[i]) != null) {
-				//	var part = new PathPart();
-				//	part.startIndex = i;
-				//	var currentGraphIndex = nodes[i].GraphIndex;
+					//} else if (NodeLink2.GetNodeLink(nodes[i]) != null) {
+					//	var part = new PathPart();
+					//	part.startIndex = i;
+					//	var currentGraphIndex = nodes[i].GraphIndex;
 
-				//	for (i++; i < nodes.Count; i++) {
-				//		if (nodes[i].GraphIndex != currentGraphIndex) {
-				//			break;
-				//		}
-				//	}
-				//	i--;
+					//	for (i++; i < nodes.Count; i++) {
+					//		if (nodes[i].GraphIndex != currentGraphIndex) {
+					//			break;
+					//		}
+					//	}
+					//	i--;
 
-				//	if (i - part.startIndex == 0) {
-				//		// Just ignore it, it might be the case that a NodeLink was the closest node
-				//		continue;
-				//	} else if (i - part.startIndex != 1) {
-				//		throw new System.Exception("NodeLink2 link length greater than two (2) nodes. " + (i - part.startIndex + 1));
-				//	}
+					//	if (i - part.startIndex == 0) {
+					//		// Just ignore it, it might be the case that a NodeLink was the closest node
+					//		continue;
+					//	} else if (i - part.startIndex != 1) {
+					//		throw new System.Exception("NodeLink2 link length greater than two (2) nodes. " + (i - part.startIndex + 1));
+					//	}
 
-				//	part.endIndex = i;
-				//	part.isLink = true;
-				//	part.startPoint = (Vector3)nodes[part.startIndex].position;
-				//	part.endPoint = (Vector3)nodes[part.endIndex].position;
-				//	result.Add(part);
-				//} else {
+					//	part.endIndex = i;
+					//	part.isLink = true;
+					//	part.startPoint = (Vector3)nodes[part.startIndex].position;
+					//	part.endPoint = (Vector3)nodes[part.endIndex].position;
+					//	result.Add(part);
+				}
+				else
+				{
 					throw new System.Exception("Unsupported node type or null node");
 				}
 			}

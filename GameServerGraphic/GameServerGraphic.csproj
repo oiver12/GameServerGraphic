@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;ASTAR_RECAST_LARGER_TILES;graphic;ASTAR_NO_POINT_GRAPH</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -139,6 +139,7 @@
     <Compile Include="AStarProgram\Core\Serialization\JsonSerializer.cs" />
     <Compile Include="AStarProgram\Core\Serialization\SimpleZipReplacement.cs" />
     <Compile Include="AStarProgram\Core\Serialization\TinyJson.cs" />
+    <Compile Include="AStarProgram\FunnelModifier.cs" />
     <Compile Include="AStarProgram\Generators\Base.cs" />
     <Compile Include="AStarProgram\Generators\NavmeshBase.cs" />
     <Compile Include="AStarProgram\Generators\NavMeshGenerator.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelRasterization.cs" />
     <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelRegion.cs" />
     <Compile Include="AStarProgram\Generators\Utilities\Voxels\VoxelUtility.cs" />
+    <Compile Include="AStarProgram\Modifiers.cs" />
     <Compile Include="AStarProgram\PackageTools\UniqueComponentAttribute.cs" />
     <Compile Include="AStarProgram\PackageTools\VersionedMonoBehaviour.cs" />
     <Compile Include="AStarProgram\Pathfinders\ABPath.cs" />
@@ -170,6 +172,7 @@
     <Compile Include="AStarProgram\RelevantGraphSurface.cs" />
     <Compile Include="AStarProgram\AI\RichAI.cs" />
     <Compile Include="AStarProgram\Seeker.cs" />
+    <Compile Include="AStarProgram\StartEndModifier.cs" />
     <Compile Include="AStarProgram\TurnBased\BlockManager.cs" />
     <Compile Include="AStarProgram\TurnBased\SingleNodeBlocker.cs" />
     <Compile Include="AStarProgram\Utilities\AstarChecksum.cs" />
@@ -238,6 +241,7 @@
     <Compile Include="Unity\ServerSend.cs" />
     <Compile Include="Unity\ThreadManager.cs" />
     <Compile Include="Unity\Troops.cs" />
+    <Compile Include="Unity\UIThreadManager.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

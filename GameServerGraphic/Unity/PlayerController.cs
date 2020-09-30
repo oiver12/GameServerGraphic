@@ -271,6 +271,7 @@ public class PlayerController : MonoBehaviour
 	/// </summary>
 	public void CheckForSend(SendState lookingState)
 	{
+		Debug.Log("Now Check For Send");
 		//Debug.Log(lookingState);
 		if (lookingState == SendState.toAttackGrid)
 			Debug.Log("Jetzt reichts");

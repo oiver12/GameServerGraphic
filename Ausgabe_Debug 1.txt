@@ -1,0 +1,52 @@
+﻿"GameServerGraphic.exe" (CLR v4.0.30319: DefaultDomain): "C:\WINDOWS\Microsoft.Net\assembly\GAC_32\mscorlib\v4.0_4.0.0.0__b77a5c561934e089\mscorlib.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: DefaultDomain): "C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\bin\Debug\GameServerGraphic.exe" geladen. Symbole wurden geladen.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Windows.Forms\v4.0_4.0.0.0__b77a5c561934e089\System.Windows.Forms.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System\v4.0_4.0.0.0__b77a5c561934e089\System.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Drawing\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Drawing.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\bin\Debug\MySql.Data.dll" geladen. PDB-Datei wurde nicht gefunden oder konnte nicht geöffnet werden.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_32\System.Data\v4.0_4.0.0.0__b77a5c561934e089\System.Data.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Core\v4.0_4.0.0.0__b77a5c561934e089\System.Core.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_32\System.Transactions\v4.0_4.0.0.0__b77a5c561934e089\System.Transactions.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Configuration\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Configuration.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Xml\v4.0_4.0.0.0__b77a5c561934e089\System.Xml.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+0
+Tank
+0
+Tank
+Tank
+Tank, Commander
+0
+Archer
+0
+Tank
+0
+Tank
+0
+Commander
+Commander
+Commander, Archer
+OK
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Security\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Security.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\Accessibility\v4.0_4.0.0.0__b03f5f7f11d50a3a\Accessibility.dll" geladen. PDB-Datei wurde nicht gefunden oder konnte nicht geöffnet werden.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\bin\Debug\Google.Protobuf.dll" geladen. PDB-Datei wurde nicht gefunden oder konnte nicht geöffnet werden.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Configuration.Install\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.Configuration.Install.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.Data.SqlXml\v4.0_4.0.0.0__b77a5c561934e089\System.Data.SqlXml.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\Users\Oliver\Documents\Visual Studio 2017\Projects\GameServerGraphic\GameServerGraphic\bin\Debug\Pathfinding.Ionic.Zip.Reduced.dll" geladen. Das Modul wurde ohne Symbole erstellt.
+Pathfinding.Serialization.GraphMeta
+Pathfinding.NavMeshGraph
+Has called CalculateTransformERROR
+Has called CalculateTransformERROR
+Main thread started. Running at 30 ticks per second.
+Has started a Path at Position MainThread at offset 159 in file:line:column <filename unknown>:0:0
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_32\System.EnterpriseServices\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.EnterpriseServices.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_32\System.EnterpriseServices\v4.0_4.0.0.0__b03f5f7f11d50a3a\System.EnterpriseServices.Wrapper.dll" geladen. Das Laden von Symbolen wurde übersprungen. Das Modul ist optimiert, und die Debugoption "Nur eigenen Code" ist aktiviert.
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\mscorlib.resources\v4.0_4.0.0.0_de_b77a5c561934e089\mscorlib.resources.dll" geladen. Das Modul wurde ohne Symbole erstellt.
+Succesfully connected to MySQL Server!
+127.0.0.1
+Starting server...
+Initialized packets.
+Server started on port 8000.
+Troops inizialized
+FormationTable inizialized
+"GameServerGraphic.exe" (CLR v4.0.30319: GameServerGraphic.exe): "C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\System.resources\v4.0_4.0.0.0_de_b77a5c561934e089\System.resources.dll" geladen. Das Modul wurde ohne Symbole erstellt.
+Das Programm "[18520] GameServerGraphic.exe" wurde mit Code -1 (0xffffffff) beendet.
