@@ -271,10 +271,7 @@ public class PlayerController : MonoBehaviour
 	/// </summary>
 	public void CheckForSend(SendState lookingState)
 	{
-		Debug.Log("Now Check For Send");
-		//Debug.Log(lookingState);
-		if (lookingState == SendState.toAttackGrid)
-			Debug.Log("Jetzt reichts");
+		//Debug.Log("Now Check For Send");
 		currentSendState = lookingState;
 		if (lookingState == SendState.noSend)
 		{
@@ -286,30 +283,30 @@ public class PlayerController : MonoBehaviour
 		if (courutineHandle == null)
 		{
 			if(lookingState == SendState.walk)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(walkSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(walkSendTime)/*.CancelWith(troopObject)*/);
 			else if(lookingState == SendState.toAttackGrid)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(toAttackgridSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(toAttackgridSendTime)/*.CancelWith(troopObject)*/);
 			else if(lookingState == SendState.leftPath)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(leftPathSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(leftPathSendTime)/*.CancelWith(troopObject)*/);
 			else if (lookingState == SendState.pushed)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(pushedSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(pushedSendTime)/*.CancelWith(troopObject)*/);
 			else if (lookingState == SendState.circleWalk)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(circleWalkSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(circleWalkSendTime)/*.CancelWith(troopObject)*/);
 		}
 		else if (currentSendState != lookingState)
 		{
 			if (courutineHandle != null)
 				courutineHandle = Timing.KillCoroutines((CoroutineHandle)courutineHandle);
 			if (lookingState == SendState.walk)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(walkSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(walkSendTime)/*.CancelWith(troopObject)*/);
 			else if (lookingState == SendState.toAttackGrid)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(toAttackgridSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(toAttackgridSendTime)/*.CancelWith(troopObject)*/);
 			else if (lookingState == SendState.leftPath)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(leftPathSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(leftPathSendTime)/*.CancelWith(troopObject)*/);
 			else if (lookingState == SendState.pushed)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(pushedSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(pushedSendTime)/*.CancelWith(troopObject)*/);
 			else if (lookingState == SendState.circleWalk)
-				courutineHandle = Timing.RunCoroutine(sendTroopMove(circleWalkSendTime).CancelWith(troopObject));
+				courutineHandle = Timing.RunCoroutine(sendTroopMove(circleWalkSendTime)/*.CancelWith(troopObject)*/);
 		}
 	}
 
@@ -317,7 +314,6 @@ public class PlayerController : MonoBehaviour
 	{
 		while (true)
 		{
-			Debug.Log("asasasdeedw");
 			if (currentSendState == SendState.walk)
 			{
 				//pointToSendToClient = richAI.steeringTarget - ((richAI.steeringTarget - transform.position).normalized * (richAI.endReachedDistance - (richAI.radius/2)));
@@ -385,12 +381,9 @@ public class PlayerController : MonoBehaviour
 				{
 					if ((troopObject.transform.position - transformOnAttackGrid.position).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance)
 					{
-						Debug.Log("OK");
-
 						pointToSendToClient = transformOnAttackGrid.localPosition;
 						ServerSend.troopMove(true, clientId, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
 						ServerSend.troopMove(false, myClient.enemyClient.id, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
-
 						troopObject.transform.parent = Mycommander.transform;
 						tempAttackGrid = false;
 						currentState = STATE.attackGrid;
@@ -399,7 +392,6 @@ public class PlayerController : MonoBehaviour
 						Mycommander.commanderScript.childhasReachedGridPoint(troopId, troopObject.transform.position, clientId);
 						return;
 					}
-
 					tempAttackGrid = true;
 					currentState = STATE.Moving;
 					troopObject.transform.parent = Mycommander.transform.parent;

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using GameServer;
+using GameServerGraphic;
 
 class Client
 {
@@ -206,14 +205,11 @@ class Client
 	{
 		Debug.Log($"{tcp.socket.Client.RemoteEndPoint} has disconnected.");
 		//List<PlacedTroopStruct>  placedTroops = player.placedTroops;
+		player.ResetPlayer();
 		ThreadManager.ExecuteOnMainThread(() =>
 		{
 			if (Matchmaking.clientSerachingFroMatch.Contains(this))
 				Matchmaking.clientSerachingFroMatch.Remove(this);
-			/*foreach (PlacedTroopStruct placed in placedTroops)
-			{
-				placed.gameObject.GetComponent<PlayerController>().DestroyObject();
-			}*/
 			//GameServer.Object.Destroy(playerGameObject);
 		});
 		player = null;

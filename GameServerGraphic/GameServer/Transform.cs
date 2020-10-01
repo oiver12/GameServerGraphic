@@ -97,6 +97,11 @@ namespace GameServer
 			}
 			set
 			{
+				if(value == null)
+				{
+					m_parent = null;
+					return;
+				}
 				value.childs.Add(this);
 				m_parent = value;
 			}

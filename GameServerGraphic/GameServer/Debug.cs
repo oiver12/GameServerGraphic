@@ -90,7 +90,7 @@ namespace GameServer
 		public static void LogError(object message)
 		{
 			AttachConsole(ATTACH_PARENT_PROCESS);
-			Console.WriteLine(message + "ERROR");
+			Console.WriteLine(message + " ERROR " + GetStackTrace());
 			//Debug.logger.Log(LogType.Error, message);
 		}
 

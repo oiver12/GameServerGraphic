@@ -78,7 +78,9 @@ namespace GameServer
 
 		public static NormalComponentsObject deserializeGameObject(Packet packet)
 		{
-			NormalComponentsObject returnobject = new NormalComponentsObject(new Transform(Vector3.zero, Quaternion.Identity));
+			Vector3 posParent = packet.ReadVector3();
+			Quaternion rotParent = packet.ReadQuaternion();
+			NormalComponentsObject returnobject = new NormalComponentsObject(new Transform(posParent, rotParent));
 			returnobject.transform.name = packet.ReadString();
 			int count = packet.ReadInt();
 			for (int i = 0; i < count; i++)

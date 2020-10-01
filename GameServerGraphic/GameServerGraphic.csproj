@@ -202,6 +202,7 @@
     <Compile Include="GameServer\Matrix4x4.cs" />
     <Compile Include="GameServer\MonoBehaviour.cs" />
     <Compile Include="GameServer\NormalComponentsObject.cs" />
+    <Compile Include="GameServer\ObjectExtensions.cs" />
     <Compile Include="GameServer\Quaternion.cs" />
     <Compile Include="GameServer\Timing.cs" />
     <Compile Include="GameServer\Transform.cs" />

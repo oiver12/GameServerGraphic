@@ -25,7 +25,7 @@ public static class FormationManager
 		{
 			//GameObject formation = Instantiate(formations[id].formationObject, Server.clients[clientId].playerGameObject.transform);
 			//TODO get Prefabs from Unity
-			NormalComponentsObject formation = DeserializeObjects.DeepClone<NormalComponentsObject>(formations[id].formationObject);
+			NormalComponentsObject formation = formations[id].formationObject.Copy();
 			formation.transform.name = id.ToString();
 			formation.transform.position = commander.transform.position;
 			formation.transform.parent = commander.transform;
@@ -57,7 +57,7 @@ public static class FormationManager
 			{
 				//Destroy(commander.GetComponent<CommanderScript>().formationObject);
 				//GameObject formation = Instantiate(formations[id].formationObject, Server.clients[clientId].playerGameObject.transform);
-				NormalComponentsObject formation = DeserializeObjects.DeepClone<NormalComponentsObject>(formations[id].formationObject);
+				NormalComponentsObject formation = formations[id].formationObject.Copy();
 				formation.transform.name = id.ToString();
 				formation.transform.position = commander.transform.position;
 				formation.transform.parent = commander.transform;

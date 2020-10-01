@@ -90,7 +90,6 @@ namespace GameServerGraphic
 			Console.WriteLine($"Main thread started. Running at {Constants.TICKS_PER_SEC} ticks per second.");
 			//TroopComponents troopTest = new TroopComponents(new Transform(new Vector3(374.1f, -67.59f, -8.1f), Quaternion.Identity), new Seeker(), new RichAI(), new AttackingSystem(), new PlayerController(), new CommanderScript());
 			//troopTest.seeker.StartPath(troopTest.transform.position, new Vector3(troopTest.transform.position.x + 10f, troopTest.transform.position.y, troopTest.transform.position.z), OnPathComplete);
-			Debug.Log("Has started a Path", true);
 			DateTime _nextLoop = DateTime.Now;
 			while (isRunning)
 			{
@@ -189,6 +188,19 @@ namespace GameServerGraphic
 			troopImage.Image = troopImagePrefab;
 			troopsImages.Add(new Tuple<Transform, PictureBox>(troopTransform, troopImage));
 			UIThreadManager.ExecuteOnMainThread(() => myControls.Add(troopImage));
+		}
+
+		public static void RemoveTroop(Transform transform)
+		{
+			for (int i = 0; i < troopsImages.Count; i++)
+			{
+				if(troopsImages[i].Item1 == transform)
+				{
+					PictureBox pic = troopsImages[i].Item2;
+					UIThreadManager.ExecuteOnMainThread(() => myControls.Remove(pic));
+					troopsImages.RemoveAt(i);
+				}
+			}
 		}
 #endif
 	}

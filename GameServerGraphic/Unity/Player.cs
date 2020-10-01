@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using GameServer;
 using Pathfinding;
+using GameServerGraphic;
 
 public class PlaceTroopsStruct
 {
@@ -344,6 +345,7 @@ class Player
 			{
 				ownTroop.gameObject.commanderScript.controlledTroops.Remove(ownTroop.gameObject);
 			}
+			Form1.RemoveTroop(placedTroops[troopId].gameObject.transform);
 			placedTroops[troopId].gameObject = null;
 			//ownTroop.gameObject.playerController.DestroyObject();
 			placedTroops.RemoveAt(troopId);
@@ -398,6 +400,8 @@ class Player
 					ownTroop.gameObject.GetParentTroopComponents().commanderScript.controlledTroops.Remove(ownTroop.gameObject);
 				}
 				//ownTroop.gameObject.playerController.DestroyObject();
+				Form1.RemoveTroop(placedTroops[troopIds[i]].gameObject.transform);
+				placedTroops[troopIds[i]].gameObject = null;
 				placedTroops.RemoveAt(troopIds[i]);
 				UpdateTroopId();
 				troopsKDTree.RemoveAt(troopIds[i]);
@@ -424,5 +428,16 @@ class Player
 	{
 		troopsKDTree.UpdatePositions();
 		return troopsKDTree.FindClosest(position);
+	}
+
+	public void ResetPlayer()
+	{
+		for (int i = 0; i < placedTroops.Count; i++)
+		{
+			Form1.RemoveTroop(placedTroops[i].gameObject.transform);
+		}
+		placedTroops.Clear();
+		placebelTroops.Clear();
+		troopsKDTree.Clear();
 	}
 }
