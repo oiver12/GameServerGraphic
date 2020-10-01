@@ -45,7 +45,7 @@ namespace Pathfinding {
 		/// See: <see cref="reachedEndOfPath"/>
 		/// See: <see cref="OnTargetReached"/>
 		/// </summary>
-		public float endReachedDistance = 0.01f;
+		public float endReachedDistance = 0.1f;
 
 		/// <summary>
 		/// Force to avoid walls with.

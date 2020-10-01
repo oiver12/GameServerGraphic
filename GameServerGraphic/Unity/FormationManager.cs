@@ -111,6 +111,7 @@ public static class FormationManager
 		}
 		allChildren.RemoveAt(0);
 		allChildren.UpdatePositions();
+		Debug.Log(allChildren.Count);
 		int lines = GetLinesCount(id, troops.Count);
 		commander.attackingSystem.lineInFormation = lines;
 		for (int i = 0; i < troops.Count; i++)
@@ -128,6 +129,7 @@ public static class FormationManager
 			int line = GetLine(id, nearestObject, lines);
 			troops[i].attackingSystem.lineInFormation = line;
 			int index = allChildren.ToList().FindIndex(a => a.transform == nearestObject);
+			Debug.Log(index);
 			//playerControllerTroop.indexOnAttackGrid = nearestObject.GetSiblingIndex();
 			allChildren.RemoveAt(index);
 			allChildren.UpdatePositions();

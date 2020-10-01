@@ -189,6 +189,7 @@ public class PlayerController : MonoBehaviour
 				//läuft in die AttackForm
 				if (tempAttackGrid)
 				{
+					Debug.Log(richAI.endReachedDistance);
 					if ((troopObject.transform.position - zielPunkt).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance)
 					{
 						ReachedEndOfPath();
@@ -215,6 +216,7 @@ public class PlayerController : MonoBehaviour
 				{
 					if ((troopObject.transform.position - lastPosition).sqrMagnitude > 5f)
 					{
+						Debug.Log("Pushed");
 						CheckForSend(SendState.pushed);
 						lastPosition = troopObject.transform.position;
 					}
@@ -362,8 +364,8 @@ public class PlayerController : MonoBehaviour
 		{
 			if (Vector3.Angle(troopObject.transform.forward, position - troopObject.transform.position) > 16f && troopObject.commanderScript != null && troopObject.commanderScript.attackGrid)
 			{
-				Transform enemy = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position).transform;
-				if (enemy != null && Vector3.Distance(enemy.position, troopObject.transform.position) < 4f)
+				var enemy = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position);
+				if (enemy != null && Vector3.Distance(enemy.transform.position, troopObject.transform.position) < 4f)
 					Debug.Log("Found near enemy"); //wenn sehr nahe anderen Truppen nicht Truppe drehen
 				else
 				{

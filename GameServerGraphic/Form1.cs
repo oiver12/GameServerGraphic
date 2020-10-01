@@ -20,6 +20,7 @@ namespace GameServerGraphic
 		public static Control.ControlCollection myControls;
 		public static List<Tuple<Transform, PictureBox>> troopsImages = new List<Tuple<Transform, PictureBox>>();
 		public static List<Tuple<Vector3, PictureBox>> wayPoints = new List<Tuple<Vector3, PictureBox>>();
+		public static int placedTroops = 0;
 		const float minX = 70;
 		const float maxX = 494;
 		const float minZ = -239;
@@ -140,6 +141,9 @@ namespace GameServerGraphic
 				Vector3 troopPos = troopsImages[i].Item1.position;
 				float relativx = (troopPos.x - minX) / xLenght;
 				float relativz = (troopPos.z - minZ) / zLength;
+				Debug.Log(relativx);
+				relativx = Mathf.Clamp01(relativx);
+				relativz = Mathf.Clamp01(relativz);
 				troopsImages[i].Item2.Location = new Point((int)(mapSizeX - (mapSizeX * relativx)), (int)(mapSizeY * relativz));
 				troopsImages[i].Item2.BringToFront();
 			}

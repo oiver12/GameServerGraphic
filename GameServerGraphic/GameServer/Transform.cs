@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using GameServerGraphic;
 
 
 namespace GameServer
@@ -57,6 +58,15 @@ namespace GameServer
 					//childs[i].localPosition = childs[i].localPosition;
 					childs[i].position += translation;
 				}
+				//if(Form1.placedTroops >= 3f)
+				//{
+				//	if (troopObject != null && troopObject.commanderScript == null)
+				//	{
+				//		//Breakpoint
+				//		var asdas = Server.clients;
+				//		Debug.Log("OK");
+				//	}
+				//}
 				m_postion = value;
 				//if(parent != null)
 				//{
@@ -81,7 +91,7 @@ namespace GameServer
 				{
 					Matrix4x4 rtsMatrix = Matrix4x4.TRS(m_postion, oldrotation, Vector3.one);
 					rtsMatrix = Matrix4x4.InvertMatrix(rtsMatrix);
-					Vector3 oldlocalposition = rtsMatrix.MultiplyPoint(childs[0].position);
+					Vector3 oldlocalposition = rtsMatrix.MultiplyPoint(childs[i].position);
 					//Debug.Log(op);
 					childs[i].localPosition = oldlocalposition;
 					//Debug.Log(childs[i].localPosition);
@@ -99,10 +109,17 @@ namespace GameServer
 			{
 				if(value == null)
 				{
+					m_parent.childs.Remove(this);
 					m_parent = null;
 					return;
 				}
-				value.childs.Add(this);
+				if(m_parent != null && m_parent != value)
+				{
+					m_parent.childs.Remove(this);
+				}
+				if(!value.childs.Contains(this))
+					value.childs.Add(this);
+
 				m_parent = value;
 			}
 		}

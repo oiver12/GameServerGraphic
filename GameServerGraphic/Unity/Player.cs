@@ -19,17 +19,15 @@ public class PlaceTroopsStruct
 
 public class PlacedTroopStruct
 {
-	public PlacedTroopStruct(Troops _troop, Vector3 _position, int _id, TroopComponents _gameObject, float _health)
+	public PlacedTroopStruct(Troops _troop, int _id, TroopComponents _gameObject, float _health)
 	{
 		troop = _troop;
-		position = _position;
 		id = _id;
 		gameObject = _gameObject;
 		health = _health;
 	}
 	public Troops troop;
 	public TroopComponents gameObject;
-	public Vector3 position;
 	public int id;
 	public float health;
 }
@@ -95,7 +93,9 @@ class Player
 			spawnPosition = transformOnAttackGrid.position;
 		}
 		TroopComponents troopObject = NetworkManager.InstantiateTroop(troop, spawnPosition);
-		troopObject.richAI.enabled = false;
+		Form1.placedTroops++;
+		troopObject.richAI.Teleport(spawnPosition, false);
+		//troopObject.richAI.enabled = false;
 		//if (troop.klasse.IsFlagSet(TroopClass.Commander))
 		//{
 		//	if (troop.klasse.IsFlagSet(TroopClass.Archer))
@@ -122,7 +122,7 @@ class Player
 		playerControllerTroop.troopId = troopId;
 		playerControllerTroop.attackSpeed = troop.attackSpeed;
 		playerControllerTroop.attackRange = troop.attackRadius;
-		placedTroops.Add(new PlacedTroopStruct(troop, spawnPosition, troopId, troopObject, troop.maxHealth));
+		placedTroops.Add(new PlacedTroopStruct(troop, troopId, troopObject, troop.maxHealth));
 		troopsKDTree.Add(troopObject);
 		playerControllerTroop.Start(troopObject);
 		troopObject.attackingSystem.Start(troopObject);
