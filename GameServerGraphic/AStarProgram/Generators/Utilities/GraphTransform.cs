@@ -207,6 +207,8 @@ namespace Pathfinding.Util {
 		/// The transformation is purely a rotation so no scale or offset is used.
 		/// </summary>
 		Vector3 IMovementPlane.ToWorld (Vector2 point, float elevation) {
+			if (float.IsNaN(rotation.x) || float.IsNaN(point.x) || float.IsNaN(elevation))
+				throw new System.Exception("Was NaN");
 			return rotation * new Vector3(point.x, elevation, point.y);
 		}
 

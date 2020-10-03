@@ -343,14 +343,18 @@ namespace Pathfinding {
 
 			RichPathPart currentPart = richPath.GetCurrentPart();
 
-			//if (currentPart is RichSpecial) {
-			//	if (!traversingOffMeshLink) {
+			//if (currentPart is RichSpecial)
+			//{
+			//	if (!traversingOffMeshLink)
+			//	{
 			//		StartCoroutine(TraverseSpecial(currentPart as RichSpecial));
 			//	}
 
 			//	nextPosition = steeringTarget = simulatedPosition;
 			//	nextRotation = rotation;
-			//} else {
+			//}
+			//else
+			//{
 				var funnel = currentPart as RichFunnel;
 				if (funnel != null && !isStopped) {
 					TraverseFunnel(funnel, deltaTime, out nextPosition, out nextRotation);
@@ -419,9 +423,7 @@ namespace Pathfinding {
 
 		void FinalMovement (Vector3 position3D, float deltaTime, float distanceToEndOfPath, float slowdownFactor, out Vector3 nextPosition, out Quaternion nextRotation) {
 			var forwards = movementPlane.ToPlane(simulatedRotation * (orientation == OrientationMode.YAxisForward ? Vector3.up : Vector3.forward));
-
 			velocity2D = MovementUtilities.ClampVelocity(velocity2D, maxSpeed, slowdownFactor, slowWhenNotFacingTarget && enableRotation, forwards);
-
 			ApplyGravity(deltaTime);
 
 			//if (rvoController != null && rvoController.enabled) {
@@ -445,7 +447,6 @@ namespace Pathfinding {
 			// Slow down the rotation of the character very close to the endpoint of the path to prevent oscillations
 			var rotationSpeedFactor = approachingPartEndpoint ? Mathf.Clamp01(1.1f * slowdownFactor - 0.1f) : 1f;
 			nextRotation = enableRotation ? SimulateRotationTowards(deltaPosition, rotationSpeed * rotationSpeedFactor * deltaTime) : simulatedRotation;
-
 			nextPosition = position3D + movementPlane.ToWorld(deltaPosition, verticalVelocity * deltaTime);
 		}
 

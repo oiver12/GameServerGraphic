@@ -501,7 +501,8 @@ namespace Pathfinding {
 				Quaternion targetRotation = Quaternion.LookRotation(movementPlane.ToWorld(direction, 0), movementPlane.ToWorld(Vector2.zero, 1));
 				// This causes the character to only rotate around the Z axis
 				if (orientation == OrientationMode.YAxisForward) targetRotation *= Quaternion.Euler(90, 0, 0);
-				return Quaternion.RotateTowards(simulatedRotation, targetRotation, maxDegrees);
+				Quaternion q = Quaternion.RotateTowards(simulatedRotation, targetRotation, maxDegrees);
+				return q;
 			}
 			return simulatedRotation;
 		}

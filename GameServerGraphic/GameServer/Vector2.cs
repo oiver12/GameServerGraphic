@@ -303,10 +303,10 @@ namespace GameServer
 		/////   <para>Returns a nicely formatted string for this vector.</para>
 		///// </summary>
 		///// <param name="format"></param>
-		//public string ToString(string format)
-		//{
-		//	return UnityString.Format("({0}, {1})", (object)this.x.ToString(format), (object)this.y.ToString(format));
-		//}
+		public override string ToString()
+		{
+			return String.Format("x: " + this.x.ToString() + " y: " + this.y.ToString());
+		}
 
 		public override int GetHashCode()
 		{

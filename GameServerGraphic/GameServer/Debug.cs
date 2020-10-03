@@ -16,14 +16,17 @@ namespace GameServer
 		/// <param name="context">Object to which the message applies.</param>
 		public static void Log(object message, bool printStackTrace = false)
 		{
-			AttachConsole(ATTACH_PARENT_PROCESS);
+			//AttachConsole(ATTACH_PARENT_PROCESS);
 			if (printStackTrace)
 			{
 				Console.Write(message + " at Position ");
 				Console.Write(GetStackTrace());
 			}
 			else
-				Console.WriteLine(message);
+			{
+				Console.Write(message + " at Position ");
+				Console.Write(GetStackTrace());
+			}
 			//Debug.logger.Log(LogType.Log, message);
 		}
 
@@ -89,7 +92,7 @@ namespace GameServer
 		/// <param name="context">Object to which the message applies.</param>
 		public static void LogError(object message)
 		{
-			AttachConsole(ATTACH_PARENT_PROCESS);
+			//AttachConsole(ATTACH_PARENT_PROCESS);
 			Console.WriteLine(message + " ERROR " + GetStackTrace());
 			//Debug.logger.Log(LogType.Error, message);
 		}
@@ -101,7 +104,7 @@ namespace GameServer
 		/// <param name="context">Object to which the message applies.</param>
 		public static void LogError(object message, Object context)
 		{
-			AttachConsole(ATTACH_PARENT_PROCESS);
+			//AttachConsole(ATTACH_PARENT_PROCESS);
 			Console.WriteLine(message + "ERROR");
 			//Debug.logger.Log(LogType.Error, message, context);
 		}
@@ -189,9 +192,9 @@ namespace GameServer
 			//Debug.logger.LogFormat(LogType.Warning, context, format, args);
 		}
 
-		[DllImport("kernel32.dll")]
-		static extern bool AttachConsole(int dwProcessId);
-		private const int ATTACH_PARENT_PROCESS = -1;
+		//[DllImport("kernel32.dll")]
+		//static extern bool AttachConsole(int dwProcessId);
+		//private const int ATTACH_PARENT_PROCESS = -1;
 	}
 }
 

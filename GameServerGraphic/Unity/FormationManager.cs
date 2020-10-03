@@ -21,6 +21,8 @@ public static class FormationManager
 		float distance = 0f;
 		commander.richAI.radius = 0.5f;
 		commander.commanderScript.formationId = id;
+		//das erst mal Formation setzten
+		//TODO nicht deepClone, nur referenz benutzten
 		if (!commander.commanderScript.attackGrid)
 		{
 			//GameObject formation = Instantiate(formations[id].formationObject, Server.clients[clientId].playerGameObject.transform);
@@ -42,6 +44,7 @@ public static class FormationManager
 		}
 		else
 		{
+			//die gleiche Formation noch mal setzten --> FormationObject kann belieben
 			if (commander.commanderScript.formationObject.transform.name.Contains(id.ToString()))
 			{
 				NormalComponentsObject formation = commander.commanderScript.formationObject;
@@ -53,6 +56,7 @@ public static class FormationManager
 				else
 					distance = MakeFormationStayInLine(formation, troops, commander, id);
 			}
+			//neue Formation, also neue Formation setzten
 			else
 			{
 				//Destroy(commander.GetComponent<CommanderScript>().formationObject);
@@ -173,12 +177,12 @@ public static class FormationManager
 
 	public static NormalComponentsObject PlaceFormationObjectForCommander(TroopComponents commander, int id)
 	{
-		NormalComponentsObject formation = new NormalComponentsObject(new Transform(commander.transform.position, commander.transform.rotation));
+		NormalComponentsObject formation = formations[id].formationObject.Copy();
 		formation.transform.parent = commander.transform;
 		//GameObject formation = Instantiate(formations[id].formationObject, commander);
 		formation.transform.name = id.ToString();
-		//formation.transform.position = commander.position;
-		//formation.transform.rotation = commander.rotation;
+		formation.transform.position = commander.transform.position;
+		formation.transform.rotation = commander.transform.rotation;
 		commander.playerController.formationId = id;
 		commander.commanderScript.formationObject = formation;
 		commander.commanderScript.attackGrid = true;

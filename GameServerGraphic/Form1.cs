@@ -19,7 +19,6 @@ namespace GameServerGraphic
 		static bool isRunning;
 		public static Control.ControlCollection myControls;
 		public static List<Tuple<Transform, PictureBox>> troopsImages = new List<Tuple<Transform, PictureBox>>();
-		public static List<Tuple<Vector3, PictureBox>> wayPoints = new List<Tuple<Vector3, PictureBox>>();
 		public static int placedTroops = 0;
 		const float minX = 70;
 		const float maxX = 494;
@@ -29,6 +28,11 @@ namespace GameServerGraphic
 		static float zLength;
 		const int mapSizeX = 999;
 		const int mapSizeY = 999;
+		float mapScale = 1;
+		PictureBox mapPicture;
+		Vector2 offsetFromCenter = new Vector2(0f, 0f);
+		float walkSpeedGraphics = 500f;
+		float zoomSpeedGraphics = 0.75f;
 
 		public Form1()
 		{
@@ -39,11 +43,14 @@ namespace GameServerGraphic
 			//size of map Image --> Display it in full Size
 			ClientSize = new Size(mapSizeX, mapSizeY);
 			//display Background Image --> Same as MiniMap on Client
-			PictureBox pictureBox1 = new PictureBox();
-			pictureBox1.ImageLocation = @"..\..\Mini Map.png";
-			pictureBox1.Size = new Size(mapSizeX, mapSizeY);
-			Controls.Add(pictureBox1);
-
+			mapPicture = new PictureBox();
+			mapPicture.ImageLocation = @"..\..\Mini Map.png";
+			mapPicture.SizeMode = PictureBoxSizeMode.Zoom;
+			mapPicture.Size = new Size(mapSizeX, mapSizeY);
+			Controls.Add(mapPicture);
+			this.KeyPreview = true;
+			this.KeyPress += new KeyPressEventHandler(Form1_KeyPress);
+			this.MouseWheel += new System.Windows.Forms.MouseEventHandler(Form1_MouseWheel);
 			myControls = Controls;
 
 			//Rennen von Update Loop während dem Idle
@@ -136,29 +143,31 @@ namespace GameServerGraphic
 
 		void Render()
 		{
+			Vector2 f = TranslateToNewMap(new Vector2(0f, 0f));
 			for (int i = 0; i < troopsImages.Count; i++)
 			{
 				Vector3 troopPos = troopsImages[i].Item1.position;
+				//troopPos = ConvertToLocal(new Vector2(troopPos.x, troopPos.z));
+				//Debug.Log(ConvertToLocal(troopPos));
 				float relativx = (troopPos.x - minX) / xLenght;
 				float relativz = (troopPos.z - minZ) / zLength;
-				Debug.Log(relativx);
 				relativx = Mathf.Clamp01(relativx);
 				relativz = Mathf.Clamp01(relativz);
-				troopsImages[i].Item2.Location = new Point((int)(mapSizeX - (mapSizeX * relativx)), (int)(mapSizeY * relativz));
+				Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
+				test = TranslateToNewMap(test);
+				troopsImages[i].Item2.Location = new Point((int)test.x, (int)test.y);
 				troopsImages[i].Item2.BringToFront();
-			}
-			for (int i = 0; i < wayPoints.Count; i++)
-			{
-				Vector3 troopPos = wayPoints[i].Item1;
-				float relativx = (troopPos.x - minX) / xLenght;
-				float relativz = (troopPos.z - minZ) / zLength;
-				wayPoints[i].Item2.Location = new Point((int)(mapSizeX - (mapSizeX * relativx)), (int)(mapSizeY * relativz));
-				wayPoints[i].Item2.BringToFront();
 			}
 			//Debug.Log(myControls[1].Location);
 			UIThreadManager.UpdateMain();
 		}
-		
+
+		Vector2 TranslateToNewMap(Vector3 troopPos)
+		{
+			Matrix4x4 rtsMatrix = Matrix4x4.TRS(new Vector2(mapPicture.Location.X, mapPicture.Location.Y), Quaternion.Identity, new Vector3(mapScale, mapScale, mapScale));
+			return rtsMatrix.MultiplyPoint(troopPos);
+		}
+
 		bool IsApplicationIdle()
 		{
 			NativeMessage result;
@@ -205,6 +214,38 @@ namespace GameServerGraphic
 					troopsImages.RemoveAt(i);
 				}
 			}
+		}
+
+		private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			if(e.KeyChar == 'w')
+			{
+				offsetFromCenter.y += walkSpeedGraphics * Time.deltaTime;
+				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+			}
+			if (e.KeyChar == 's')
+			{
+				offsetFromCenter.y -= walkSpeedGraphics * Time.deltaTime;
+				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+			}
+			if (e.KeyChar == 'a')
+			{
+				offsetFromCenter.x += walkSpeedGraphics * Time.deltaTime;
+				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+			}
+			if (e.KeyChar == 'd')
+			{
+				offsetFromCenter.x -= walkSpeedGraphics * Time.deltaTime;
+				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+			}
+		}
+
+		private void Form1_MouseWheel(object sender, MouseEventArgs e)
+		{
+			int numberOfTextLinesToMove = e.Delta * SystemInformation.MouseWheelScrollLines / 120;
+			mapScale += numberOfTextLinesToMove * zoomSpeedGraphics * Time.deltaTime;
+			mapPicture.Size = new Size((int)(mapSizeX * mapScale), (int)(mapSizeY * mapScale));
+			mapPicture.Location = new Point((int)(mapSizeX / 2 - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)(mapSizeY / 2 - mapPicture.Size.Height / 2 + offsetFromCenter.y));
 		}
 #endif
 	}

@@ -81,10 +81,14 @@ namespace GameServer
 		{
 			get
 			{
+				if (float.IsNaN(m_rotation.w))
+					throw new System.Exception("Rot was NaN");
 				return m_rotation;
 			}
 			set
 			{
+				if (float.IsNaN(value.w))
+					throw new System.Exception("Rot was NaN");
 				Quaternion oldrotation = m_rotation;
 				m_rotation = value;
 				for (int i = 0; i < childs.Count; i++)

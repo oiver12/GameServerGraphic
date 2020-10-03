@@ -943,6 +943,9 @@ namespace GameServer
 
 		public static float Angle(Quaternion from, Quaternion to)
 		{
+			float dot = Dot(from, to);
+			if (dot >= 1f)
+				return 0f;
 			return (float)(Mathf.Rad2Deg *  2 * Math.Acos(Quaternion.Dot(from, to)));
 		}
 
@@ -958,7 +961,8 @@ namespace GameServer
 			if ((double)num == 0.0)
 				return to;
 			float t = Mathf.Min(1f, maxDegreesDelta / num);
-			return Quaternion.Slerp(from, to, t);
+			Quaternion q = Quaternion.Slerp(from, to, t);
+			return q;
 		}
 	}
 }
