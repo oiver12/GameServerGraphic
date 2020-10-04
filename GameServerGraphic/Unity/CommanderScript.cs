@@ -399,24 +399,24 @@ public class CommanderScript : MonoBehaviour
 
 	protected void SetLineAttack()
 	{
-		minAttackRange = float.PositiveInfinity;
-		List<AttackingSystem> firstLine = new List<AttackingSystem>();
-		int lines = FormationManager.GetLinesCount(formationId, controlledTroops.Count);
-		//die Linien setzten auf der Truppe und bei der ersten Riehe den niedrigsten Attack Range setzen
-		for (int i = 0; i < controlledTroops.Count; i++)
-		{
-			int line = FormationManager.GetLine(formationId, controlledTroops[i].playerController.transformOnAttackGrid, lines);
-			controlledTroops[i].attackingSystem.lineInFormation = line;
-			if (line == 0)
-			{
-				float attackRange = controlledTroops[i].playerController.attackRange;
-				if (attackRange < minAttackRange)
-					minAttackRange = attackRange;
-				firstLine.Add(controlledTroops[i].attackingSystem);
-			}
-			controlledTroops[i].transform.parent = troopObject.transform.parent;
-			controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
-		}
+		//minAttackRange = float.PositiveInfinity;
+		//List<AttackingSystem> firstLine = new List<AttackingSystem>();
+		//int lines = FormationManager.GetLinesCount(formationId, controlledTroops.Count);
+		////die Linien setzten auf der Truppe und bei der ersten Riehe den niedrigsten Attack Range setzen
+		//for (int i = 0; i < controlledTroops.Count; i++)
+		//{
+		//	int line = FormationManager.GetLine(formationId, controlledTroops[i].playerController.transformOnAttackGrid, lines);
+		//	controlledTroops[i].attackingSystem.lineInFormation = line;
+		//	if (line == 0)
+		//	{
+		//		float attackRange = controlledTroops[i].playerController.attackRange;
+		//		if (attackRange < minAttackRange)
+		//			minAttackRange = attackRange;
+		//		firstLine.Add(controlledTroops[i].attackingSystem);
+		//	}
+		//	controlledTroops[i].transform.parent = troopObject.transform.parent;
+		//	controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
+		//}
 		//for (int i = 0; i < firstLine.Count; i++)
 		//{
 		//	firstLine[i].frontLineMinAttackRange = minAttackRange;
