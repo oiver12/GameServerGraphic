@@ -6,6 +6,8 @@ using System;
 
 public class AttackingSystem : MonoBehaviour
 {
+	public int enemyTroopAttacking = 0;
+	public int maxTroopsOnOneTroops = 1;
 	public int enemyPlayerHitting;
 	public int lineInFormation;
 	public float frontLineMinAttackRange;
@@ -313,7 +315,7 @@ public class AttackingSystem : MonoBehaviour
 		hasToSearch = true;
 		//transform.parent = transform;
 		playerController.isAttacking = true;
-		Timing.RunCoroutine(searchForEnemyPlayerCourutine().CancelWith(troopObject));
+		Timing.RunCoroutine(searchForEnemyPlayerCourutine()/*.CancelWith(troopObject)*/);
 	}
 
 	//aufhören des Schauens nach anderen Truppen
@@ -408,7 +410,7 @@ public class AttackingSystem : MonoBehaviour
 			//es wird in einem Radius von 10 meter gesucht ob noch eine Truppe lebt
 			if ((troopObject.transform.position - enemyClosest.transform.position).sqrMagnitude < (attackSearchRange * attackSearchRange))
 			{
-				//eine Variabel auf deer Truppe zeigt an, von wie vielenTruppen man gerade angegriffen wird.
+				//eine Variabel auf der Truppe zeigt an, von wie vielenTruppen man gerade angegriffen wird.
 				if (enemyClosest != enemyAttackPlayer)
 				{
 					if (enemyAttackPlayer != null && enemyAttackPlayer.attackingSystem.enemyPlayerHitting > 0)
@@ -449,5 +451,23 @@ public class AttackingSystem : MonoBehaviour
 				CommanderWalkFormation();
 			}
 		}
+	}
+
+	public TroopComponents FindClosest()
+	{
+		TroopComponents enemyNearest = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position);
+		if(enemyNearest.attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
+		{
+			if (enemyAttackPlayer != null && enemyNearest == enemyAttackPlayer)
+				return enemyNearest;
+			else if(enemyAttackPlayer != null && enemyNearest != enemyAttackPlayer)
+			{
+				enemyAttackPlayer.attackingSystem.enemyTroopAttacking--;
+			}
+			enemyNearest.attackingSystem.enemyTroopAttacking++;
+			enemyAttackPlayer = enemyNearest;
+			return enemyAttackPlayer;
+		}
+		return null;
 	}
 }

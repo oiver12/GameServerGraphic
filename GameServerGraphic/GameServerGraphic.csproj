@@ -218,7 +218,7 @@
     <Compile Include="Unity\ArcherCommander.cs" />
     <Compile Include="Unity\AttackingSystem.cs" />
     <Compile Include="Unity\BonusClasses.cs" />
-    <Compile Include="Unity\Client.cs" />
+    <Compile Include="Unity\Server\Client.cs" />
     <Compile Include="Unity\CollisionDetector.cs" />
     <Compile Include="Unity\CommanderScript.cs" />
     <Compile Include="Unity\Constants.cs" />
@@ -233,13 +233,13 @@
     <Compile Include="Unity\MySQL.cs" />
     <Compile Include="Unity\NetworkManager.cs" />
     <Compile Include="Unity\NumercisTOVector3.cs" />
-    <Compile Include="Unity\Packet.cs" />
+    <Compile Include="Unity\Server\Packet.cs" />
     <Compile Include="Unity\Player.cs" />
     <Compile Include="Unity\PlayerController.cs" />
     <Compile Include="Unity\Rect3D.cs" />
-    <Compile Include="Unity\Server.cs" />
-    <Compile Include="Unity\ServerHandle.cs" />
-    <Compile Include="Unity\ServerSend.cs" />
+    <Compile Include="Unity\Server\Server.cs" />
+    <Compile Include="Unity\Server\ServerHandle.cs" />
+    <Compile Include="Unity\Server\ServerSend.cs" />
     <Compile Include="Unity\ThreadManager.cs" />
     <Compile Include="Unity\Troops.cs" />
     <Compile Include="Unity\UIThreadManager.cs" />

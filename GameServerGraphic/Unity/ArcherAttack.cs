@@ -36,7 +36,7 @@ public class ArcherAttack : AttackingSystem
 		myAttackStyle = _myAttackSytle;
 		hasToSearch = true;
 		archerShootPosition = enemyAttackPlayer.transform.position;
-		Timing.RunCoroutine(searchForEnemyPlayerCourutine().CancelWith(troopObject));
+		Timing.RunCoroutine(searchForEnemyPlayerCourutine()/*.CancelWith(troopObject)*/);
 		playerController.currentState = STATE.HittingInFormation;
 	}
 

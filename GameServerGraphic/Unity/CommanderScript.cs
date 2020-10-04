@@ -196,7 +196,7 @@ public class CommanderScript : MonoBehaviour
 		{
 			//ServerSend.troopMove(true, playerController.clientId, playerController.troopId, transform.position, Vector3.zero, 1f, true, false);
 			//richAI.endReachedDistance = Server.clients[playerController.clientId].player.placedTroops[playerController.troopId].troop.attackRadius;
-			playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
+			//playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
 			ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
 			SetLineAttack();
 		}

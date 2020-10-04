@@ -18,6 +18,7 @@ namespace GameServerGraphic
 		static AstarPath astarpath;
 		static bool isRunning;
 		public static Control.ControlCollection myControls;
+		public static Graphics myGraphics;
 		public static List<Tuple<Transform, PictureBox>> troopsImages = new List<Tuple<Transform, PictureBox>>();
 		public static int placedTroops = 0;
 		const float minX = 70;
@@ -28,11 +29,16 @@ namespace GameServerGraphic
 		static float zLength;
 		const int mapSizeX = 999;
 		const int mapSizeY = 999;
-		float mapScale = 1;
-		PictureBox mapPicture;
+		static float mapScale = 1;
+		static PictureBox mapPicture;
 		Vector2 offsetFromCenter = new Vector2(0f, 0f);
 		float walkSpeedGraphics = 500f;
 		float zoomSpeedGraphics = 0.75f;
+
+		float randomFloat(Random rand)
+		{
+			return (float)(rand.NextDouble() * (300f - (-100f)) + (-100f));
+		}
 
 		public Form1()
 		{
@@ -52,6 +58,7 @@ namespace GameServerGraphic
 			this.KeyPress += new KeyPressEventHandler(Form1_KeyPress);
 			this.MouseWheel += new System.Windows.Forms.MouseEventHandler(Form1_MouseWheel);
 			myControls = Controls;
+			myGraphics = this.CreateGraphics();
 
 			//Rennen von Update Loop während dem Idle
 			Application.Idle += HandleApplicationIdle;
@@ -162,7 +169,20 @@ namespace GameServerGraphic
 			UIThreadManager.UpdateMain();
 		}
 
-		Vector2 TranslateToNewMap(Vector3 troopPos)
+		static Point GetInCam(Vector3 worldPos)
+		{
+			//troopPos = ConvertToLocal(new Vector2(troopPos.x, troopPos.z));
+			//Debug.Log(ConvertToLocal(troopPos));
+			float relativx = (worldPos.x - minX) / xLenght;
+			float relativz = (worldPos.z - minZ) / zLength;
+			relativx = Mathf.Clamp01(relativx);
+			relativz = Mathf.Clamp01(relativz);
+			Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
+			test = TranslateToNewMap(test);
+			return new Point((int)test.x, (int)test.y);
+		}
+
+		static Vector2 TranslateToNewMap(Vector3 troopPos)
 		{
 			Matrix4x4 rtsMatrix = Matrix4x4.TRS(new Vector2(mapPicture.Location.X, mapPicture.Location.Y), Quaternion.Identity, new Vector3(mapScale, mapScale, mapScale));
 			return rtsMatrix.MultiplyPoint(troopPos);
@@ -216,6 +236,12 @@ namespace GameServerGraphic
 			}
 		}
 
+		public static void DrawPointAt(Vector3 worldPosition, int width)
+		{
+			Point camPoint = GetInCam(worldPosition);
+			UIThreadManager.ExecuteOnMainThread(() => myGraphics.FillRectangle(Brushes.Black, camPoint.X, camPoint.Y, width, width));
+		}
+
 		private void Form1_KeyPress(object sender, KeyPressEventArgs e)
 		{
 			if(e.KeyChar == 'w')
@@ -248,5 +274,43 @@ namespace GameServerGraphic
 			mapPicture.Location = new Point((int)(mapSizeX / 2 - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)(mapSizeY / 2 - mapPicture.Size.Height / 2 + offsetFromCenter.y));
 		}
 #endif
+
+		//void TestKDTree()
+		//{
+		//	var tree = new KdTree.KdTree<float, int>(2, new FloatMath());
+		//	var newTree = new KdTree<BaseClassGameObject>();
+		//	Random rand = new Random();
+		//	for (int i = 0; i < 2000; i++)
+		//	{
+		//		float pointX = randomFloat(rand);
+		//		float pointY = randomFloat(rand);
+		//		tree.Add(new[] { pointX, pointY }, 1);
+		//		newTree.Add(new BaseClassGameObject() { transform = new Transform(new Vector2(pointX, pointY), Quaternion.Identity) });
+		//	}
+		//	var timer = new System.Diagnostics.Stopwatch();
+		//	float sum1 = 0f;
+		//	float sum2 = 0f;
+		//	for (int g = 0; g < 1000; g++)
+		//	{
+		//		timer.Reset();
+		//		timer.Start();
+		//		var nearest = tree.GetNearestNeighbours(new[] { 50f, 10f }, 1);
+		//		//var nearest = tree.RadialSearch(new[] { 50f, 10f }, 100f);
+		//		timer.Stop();
+		//		sum1 += timer.ElapsedMilliseconds;
+		//	}
+		//	for (int g = 0; g < 1000; g++)
+		//	{
+		//		timer.Reset();
+		//		timer.Start();
+		//		var nearest = newTree.FindClosest(new Vector2(50f, 10f));
+		//		//var nearest = newTree.FindClose(new Vector2(50f, 10f));
+		//		timer.Stop();
+		//		sum2 += timer.ElapsedMilliseconds;
+		//	}
+		//	sum1 /= 1000f;
+		//	sum2 /= 1000f;
+		//	Debug.Log("Form First: " + sum1 + ". From Second: " + sum2);
+		//}
 	}
 }

@@ -163,7 +163,9 @@ class Player
 			playerControllerTroop.formationId = commander.formationId;
 			playerControllerTroop.transformOnAttackGrid = transformOnAttackGrid;
 			playerControllerTroop.currentState = STATE.attackGrid;
-			commander.SetAgentRadius((playerControllerTroop.troopObject.transform.position - commander.troopObject.transform.position).magnitude);
+			float distance = (playerControllerTroop.troopObject.transform.position - commander.troopObject.transform.position).magnitude;
+			commander.SetAgentRadius(distance);
+			commander.formationRadius = distance + 1f;
 		}
 	}
 

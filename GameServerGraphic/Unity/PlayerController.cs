@@ -175,6 +175,7 @@ public class PlayerController : MonoBehaviour
 				//{
 				if (circleWalk)
 				{
+					Form1.DrawPointAt(troopObject.transform.position, 50);
 					movementDirectionCircle = circleMiddlePoint - troopObject.transform.position;
 					movementDirectionCircle = new Vector3(movementDirectionCircle.z, 0, -movementDirectionCircle.x) * factorCircleSide;
 					movementDirectionCircle = movementDirectionCircle.normalized * richAI.maxSpeed;
@@ -189,7 +190,6 @@ public class PlayerController : MonoBehaviour
 				//läuft in die AttackForm
 				if (tempAttackGrid)
 				{
-					Debug.Log(richAI.endReachedDistance);
 					if ((troopObject.transform.position - zielPunkt).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance)
 					{
 						ReachedEndOfPath();
@@ -247,20 +247,12 @@ public class PlayerController : MonoBehaviour
 
 	void AttackUpdate()
 	{
-		if (enemyTroop == null)
-			return;
-		if ((troopObject.transform.position - enemyTroop.position).sqrMagnitude <= attackRange * attackRange)
+		// I.) Nicht weiter weg als .. von AttackGrid Position gehen, wenn Truppe angreifen
+		// II.) Nicht mehr als 3 Truppen pro gegnerische Truppe
+		// III.) Preferiere gegnerische Truppe mit weniger Truppen an sich
+		if((troopObject.transform.position - transformOnAttackGrid.position).sqrMagnitude < maxDistanceToAttackGrid)
 		{
-			if (Time.time - lastTimeAttack >= attackSpeed)
-			{
-				lastTimeAttack = Time.time;
-				attackingSystem.AttackInFormationPublic();
-			}
-		}
-		else if ((troopObject.transform.position - transformOnAttackGrid.position).sqrMagnitude < maxDistanceToAttackGrid * maxDistanceToAttackGrid)
-		{
-
-			troopObject.transform.Translate((enemyTroop.position - troopObject.transform.position).normalized * 3f * Time.deltaTime, Space.World);
+			 
 		}
 	}
 

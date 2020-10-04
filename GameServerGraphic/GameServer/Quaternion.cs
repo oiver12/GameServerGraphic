@@ -946,6 +946,8 @@ namespace GameServer
 			float dot = Dot(from, to);
 			if (dot >= 1f)
 				return 0f;
+			if (dot <= -1f)
+				return 180f;
 			return (float)(Mathf.Rad2Deg *  2 * Math.Acos(Quaternion.Dot(from, to)));
 		}
 
