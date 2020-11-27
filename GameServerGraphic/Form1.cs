@@ -34,6 +34,7 @@ namespace GameServerGraphic
 		Vector2 offsetFromCenter = new Vector2(0f, 0f);
 		float walkSpeedGraphics = 500f;
 		float zoomSpeedGraphics = 0.75f;
+		static TextBox textBoxStatic;
 
 		float randomFloat(Random rand)
 		{
@@ -45,7 +46,7 @@ namespace GameServerGraphic
 			InitializeComponent();
 			xLenght = Mathf.Abs(maxX) - minX;
 			zLength = Mathf.Abs(maxZ) - minZ;
-
+			textBoxStatic = textBox1;
 			//size of map Image --> Display it in full Size
 			ClientSize = new Size(mapSizeX, mapSizeY);
 			//display Background Image --> Same as MiniMap on Client
@@ -57,9 +58,9 @@ namespace GameServerGraphic
 			this.KeyPreview = true;
 			this.KeyPress += new KeyPressEventHandler(Form1_KeyPress);
 			this.MouseWheel += new System.Windows.Forms.MouseEventHandler(Form1_MouseWheel);
+			mapPicture.MouseDown += new System.Windows.Forms.MouseEventHandler(panel1_MouseDown);
 			myControls = Controls;
 			myGraphics = this.CreateGraphics();
-
 			//Rennen von Update Loop während dem Idle
 			Application.Idle += HandleApplicationIdle;
 
@@ -89,7 +90,18 @@ namespace GameServerGraphic
 			}
 			Server.allTroops = DeserializeObjects.DeserializeTroops(troopData);
 
-			//Leden von dem Square Bild für die Truppen
+			byte[] multiplierData;
+			using (var stream = new FileStream(@"..\..\MultiplierData.bytes", FileMode.Open))
+			{
+				multiplierData = new byte[(int)stream.Length];
+				stream.Read(multiplierData, 0, (int)stream.Length);
+			}
+			FormationTable[] formationTable;
+			TroopTable[] troopTable;
+			DeserializeObjects.DeserializeMultiplier(multiplierData, out formationTable, out troopTable);
+			MultiplierManager.formationMultiplier = formationTable;
+			MultiplierManager.troopMultiplier = troopTable;
+			//Laden von dem Square Bild für die Truppen
 			troopImagePrefab = Image.FromFile(@"..\..\troopImagePrefab.png");
 			instanceTiming = Timing.Instance;
 			astarpath = new AstarPath(astardatabytes);
@@ -97,6 +109,7 @@ namespace GameServerGraphic
 			Thread mainThread = new Thread(new ThreadStart(MainThread));
 			mainThread.Start();
 			//MainThread();
+			textBox1.Text = "Test";
 			Server.Start(50, 8000);
 		}
 
@@ -213,6 +226,7 @@ namespace GameServerGraphic
 		//	pictureBox1.Location = new Point(50, 10);
 		//}
 #if graphic
+
 		public static void AddTroop(Transform troopTransform)
 		{
 			PictureBox troopImage = new PictureBox();
@@ -221,6 +235,7 @@ namespace GameServerGraphic
 			troopImage.Image = troopImagePrefab;
 			troopsImages.Add(new Tuple<Transform, PictureBox>(troopTransform, troopImage));
 			UIThreadManager.ExecuteOnMainThread(() => myControls.Add(troopImage));
+			UIThreadManager.ExecuteOnMainThread(() => troopImage.MouseClick += new MouseEventHandler(panel1_MouseDown));
 		}
 
 		public static void RemoveTroop(Transform transform)
@@ -272,6 +287,18 @@ namespace GameServerGraphic
 			mapScale += numberOfTextLinesToMove * zoomSpeedGraphics * Time.deltaTime;
 			mapPicture.Size = new Size((int)(mapSizeX * mapScale), (int)(mapSizeY * mapScale));
 			mapPicture.Location = new Point((int)(mapSizeX / 2 - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)(mapSizeY / 2 - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+		}
+
+		private static void panel1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+		{
+			for (int i = 0; i < troopsImages.Count; i++)
+			{
+				if (troopsImages[i].Item2 == sender)
+				{
+					TroopComponents thisTroops = troopsImages[i].Item1.troopObject;
+					Debug.Log(thisTroops.transform.name);
+				}
+			}
 		}
 #endif
 

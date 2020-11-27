@@ -69,7 +69,7 @@ class Player
 	public void PlaceTroop(Troops troop, Vector3 spawnPosition, int troopId, int commanderId, bool sendToClient, bool gedrücktHalten)
 	{
 		CommanderScript commander = null;
-		Transform transformOnAttackGrid = null;
+		FormationChild transformOnAttackGrid = null;
 		if (!troop.klasse.IsFlagSet(TroopClass.Commander))
 			commander = placedTroops[commanderId].gameObject.commanderScript;
 		if (!troop.klasse.IsFlagSet(TroopClass.Commander) && placedTroops[commanderId].gameObject.commanderScript.controlledTroops.Count + 1 > placedTroops[commanderId].troop.maxTroops)
@@ -89,8 +89,9 @@ class Player
 				ServerSend.TroopPlace(id, troop, Vector3.zero, 2000, 2000, true);
 				return;
 			}*/
-			transformOnAttackGrid = commander.formationObject.transform.GetChild(placedTroopsInCommander + 1);
-			spawnPosition = transformOnAttackGrid.position;
+			commander.troopObject.playerController.transformOnAttackGrid = commander.formationObject.formationObjects[0];
+			transformOnAttackGrid = commander.formationObject.formationObjects[placedTroopsInCommander + 1];
+			spawnPosition = transformOnAttackGrid.transform.position;
 		}
 		TroopComponents troopObject = NetworkManager.InstantiateTroop(troop, spawnPosition);
 		Form1.placedTroops++;
@@ -177,7 +178,7 @@ class Player
 		commanderObject.playerController.Mycommander = commanderObject;
 		int commanderId = placedTroops.Count-1;
 		//Instantiate Formation
-		Transform formation = FormationManager.PlaceFormationObjectForCommander(commanderObject, formationId).transform;
+		FormationObject formation = FormationManager.PlaceFormationObjectForCommander(commanderObject, formationId);
 		//Place all Troops
 		List<int> ids = new List<int>();
 		List<Vector3> positions = new List<Vector3>();
@@ -185,10 +186,10 @@ class Player
 		for (int i =0; i<armyTroops.Count; i++)
 		{
 			//Vector3 position = formation.GetChild(i+1).position -offset;
-			Transform transformOnAttackGrid = formation.GetChild(i + 1);
-			PlaceTroop(armyTroops[i], transformOnAttackGrid.position, placedTroops.Count, commanderId, false, false);
+			FormationChild transformOnAttackGrid = formation.formationObjects[i + 1];
+			PlaceTroop(armyTroops[i], transformOnAttackGrid.transform.position, placedTroops.Count, commanderId, false, false);
 			ids.Add(armyTroops[i].id);
-			positions.Add(transformOnAttackGrid.position);
+			positions.Add(transformOnAttackGrid.transform.position);
 			PlayerController playerControllerTroop = placedTroops[placedTroops.Count - 1].gameObject.playerController;
 			playerControllerTroop.troopObject.transform.parent = commanderObject.transform;
 			playerControllerTroop.Mycommander = commanderObject;

@@ -225,7 +225,7 @@ public class AttackingSystem : MonoBehaviour
 		//}
 		//ServerSend.hasReachedDestination(true, commander.troopId, myClient.id, commander.transform.position, commander.troopId);
 		enemyAttackPlayer = enemyClosest;
-		playerController.enemyTroop = enemyClosest.transform;
+		playerController.enemyTroop = enemyClosest;
 		playerController.currentState = STATE.Following;
 		//playerController.currentState = STATE.HittingInFormation;
 		//TODO send clients

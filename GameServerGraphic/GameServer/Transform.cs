@@ -10,6 +10,7 @@ namespace GameServer
 		Self
 	}
 
+	[System.Serializable]
 	public class Transform
 	{
 

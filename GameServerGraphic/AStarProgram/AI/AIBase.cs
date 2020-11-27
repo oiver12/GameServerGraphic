@@ -249,6 +249,10 @@ namespace Pathfinding {
 		/// <summary>True if the path should be automatically recalculated as soon as possible</summary>
 		protected virtual bool shouldRecalculatePath {
 			get {
+				if (!float.IsPositiveInfinity(destination.x))
+				{
+
+				}
 				return Time.time - lastRepath >= repathRate && !waitingForPathCalculation && canSearch && !float.IsPositiveInfinity(destination.x);
 			}
 		}

@@ -42,7 +42,7 @@ public class PlayerController : MonoBehaviour
 	public STATE currentState;
 	public SendState currentSendState = SendState.noSend;
 	public Troops myTroop { get; private set; }
-	public Transform transformOnAttackGrid;
+	public FormationChild transformOnAttackGrid;
 	public TroopComponents Mycommander;
 	public TroopComponents troopObject;
 
@@ -60,7 +60,7 @@ public class PlayerController : MonoBehaviour
 	public RichAI richAI;
 	//public RVOController RVOController;
 	public Seeker seeker;
-	public Transform enemyTroop;
+	public TroopComponents enemyTroop;
 
 	bool waitAfterStart = false;
 	bool hasDone;
@@ -103,6 +103,7 @@ public class PlayerController : MonoBehaviour
 
 		bounds.center = troopObject.transform.position;
 		bounds.size =  new Vector3(1.5f, 1.5f, 1.5f);
+		troopObject.richAI.canSearch = true;
 	}
 
 
@@ -184,7 +185,6 @@ public class PlayerController : MonoBehaviour
 					richAI.FinalizeRotation(Quaternion.LookRotation(movementDirectionCircle, Vector3.up));
 					//Quaternion rotation = Quaternion.LookRotation(movementDirectionCircle, Vector3.up);
 					//transform.rotation = rotation;
-					Debug.Log("Now Circle Walk");
 					CheckForSend(SendState.circleWalk);
 				}
 				//läuft in die AttackForm
@@ -216,7 +216,6 @@ public class PlayerController : MonoBehaviour
 				{
 					if ((troopObject.transform.position - lastPosition).sqrMagnitude > 5f)
 					{
-						Debug.Log("Pushed");
 						CheckForSend(SendState.pushed);
 						lastPosition = troopObject.transform.position;
 					}
@@ -247,13 +246,49 @@ public class PlayerController : MonoBehaviour
 
 	void AttackUpdate()
 	{
-		// I.) Nicht weiter weg als .. von AttackGrid Position gehen, wenn Truppe angreifen
-		// II.) Nicht mehr als 3 Truppen pro gegnerische Truppe
-		// III.) Preferiere gegnerische Truppe mit weniger Truppen an sich
-		if((troopObject.transform.position - transformOnAttackGrid.position).sqrMagnitude < maxDistanceToAttackGrid)
+		if(attackingSystem.lineInFormation == 1)
 		{
-			 
+			// I.) Nicht weiter weg als .. von AttackGrid Position gehen, wenn Truppe angreifen
+			// II.) Nicht mehr als 3 Truppen pro gegnerische Truppe
+			// III.) Preferiere gegnerische Truppe mit weniger Truppen an sich
+			if ((troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude < maxDistanceToAttackGrid * maxDistanceToAttackGrid)
+			{
+				if (enemyTroop == null)
+				{
+					enemyTroop = troopObject.attackingSystem.FindClosest();
+					if (enemyTroop != null)
+					{
+						troopObject.richAI.destination = enemyTroop.transform.position;
+					}
+				}
+				else
+				{
+					troopObject.richAI.destination = enemyTroop.transform.position;
+					if ((enemyTroop.transform.position - troopObject.transform.position).sqrMagnitude < attackRange * attackRange)
+					{
+						if (Time.time - lastTimeAttack > attackSpeed)
+						{
+							myClient.player.enemyPlayer.ReduceTroopDamage(enemyTroop.playerController.troopId, troopId, myTroop.damage);
+						}
+					}
+				}
+
+			}
 		}
+		else
+		{
+			//zum AttackGridPunkt laufen, da man sich nicht in der ersten Reihe befindet
+			troopObject.richAI.destination = transformOnAttackGrid.transform.position;
+		}
+	}
+
+	public void UpdateEnemyTroopPoisition()
+	{
+		//if (enemyTroop != null)
+		//	richAI.destination = enemyTroop.transform.position;
+		//else
+		//	richAI.destination = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+		Debug.Log("Calculate Path");
 	}
 
 
@@ -318,7 +353,7 @@ public class PlayerController : MonoBehaviour
 			else if (currentSendState == SendState.toAttackGrid)
 			{
 				//pointToSendToClient = Mycommander.InverseTransformPoint(transformOnAttackGrid.position);
-				pointToSendToClient = transformOnAttackGrid.localPosition;
+				pointToSendToClient = transformOnAttackGrid.transform.localPosition;
 				ServerSend.troopMove(true, clientId, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
 				ServerSend.troopMove(false, myClient.enemyClient.id, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
 			}
@@ -373,9 +408,10 @@ public class PlayerController : MonoBehaviour
 			{
 				if (toAttackGrid)
 				{
-					if ((troopObject.transform.position - transformOnAttackGrid.position).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance)
+					//TODO wieso ist transformOnAttackGrid manchmal null
+					if (transformOnAttackGrid != null && (troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance)
 					{
-						pointToSendToClient = transformOnAttackGrid.localPosition;
+						pointToSendToClient = transformOnAttackGrid.transform.localPosition;
 						ServerSend.troopMove(true, clientId, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
 						ServerSend.troopMove(false, myClient.enemyClient.id, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
 						troopObject.transform.parent = Mycommander.transform;
@@ -429,7 +465,6 @@ public class PlayerController : MonoBehaviour
 				troopObject.attackingSystem.enemyAttackPlayer = nearestObject;
 				if (troopObject.commanderScript != null && troopObject.commanderScript.attackGrid)
 				{
-					Debug.Log("OK");
 					troopObject.commanderScript.BeginAttackInFormation(nearestObject);
 				}
 				return true;
@@ -447,7 +482,6 @@ public class PlayerController : MonoBehaviour
 	{
 		/*if (tempAttackGrid && GetComponentInParent<CommanderScript>() == null)
 			return;*/
-		Debug.Log("Reached End");
 		CheckForSend(SendState.noSend);
 		currentState = STATE.Idle;
 		richAI.canMove = true;
@@ -532,10 +566,8 @@ public class PlayerController : MonoBehaviour
 
 	IEnumerator<float> waitAfterStartCourutine()
 	{
-		Debug.Log("asdasuhdo8asgfuidz");
 		yield return Timing.WaitForSeconds(0.5f);
 		waitAfterStart = true;
-		Debug.Log("ASfais");
 	}
 
 	public void StartTruning(Vector3 direction)

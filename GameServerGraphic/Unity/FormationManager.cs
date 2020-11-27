@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GameServer;
 using System;
+using System.Diagnostics;
 
 public static class FormationManager
 {
@@ -18,6 +19,8 @@ public static class FormationManager
 
 	public static float SetFormation(int id, List<TroopComponents> troops, TroopComponents commander, int clientId, bool hasToStayInLine)
 	{
+		Stopwatch stopWatch = new Stopwatch();
+		stopWatch.Start();
 		float distance = 0f;
 		commander.richAI.radius = 0.5f;
 		commander.commanderScript.formationId = id;
@@ -27,7 +30,7 @@ public static class FormationManager
 		{
 			//GameObject formation = Instantiate(formations[id].formationObject, Server.clients[clientId].playerGameObject.transform);
 			//TODO get Prefabs from Unity
-			NormalComponentsObject formation = formations[id].formationObject.Copy();
+			FormationObject formation = formations[id].formationObject.Copy();
 			formation.transform.name = id.ToString();
 			formation.transform.position = commander.transform.position;
 			formation.transform.parent = commander.transform;
@@ -44,10 +47,10 @@ public static class FormationManager
 		}
 		else
 		{
-			//die gleiche Formation noch mal setzten --> FormationObject kann belieben
+			//die gleiche Formation noch mal setzten --> FormationObject kann bleiben
 			if (commander.commanderScript.formationObject.transform.name.Contains(id.ToString()))
 			{
-				NormalComponentsObject formation = commander.commanderScript.formationObject;
+				FormationObject formation = commander.commanderScript.formationObject;
 				commander.commanderScript.childReachedPositionCount = 0;
 				formation.transform.rotation = commander.transform.rotation;
 
@@ -61,7 +64,7 @@ public static class FormationManager
 			{
 				//Destroy(commander.GetComponent<CommanderScript>().formationObject);
 				//GameObject formation = Instantiate(formations[id].formationObject, Server.clients[clientId].playerGameObject.transform);
-				NormalComponentsObject formation = formations[id].formationObject.Copy();
+				FormationObject formation = formations[id].formationObject.Copy();
 				formation.transform.name = id.ToString();
 				formation.transform.position = commander.transform.position;
 				formation.transform.parent = commander.transform;
@@ -81,31 +84,32 @@ public static class FormationManager
 		commander.commanderScript.formationRadius = distance + 1;
 		ServerSend.SetInAttackForm(clientId, commander.playerController.troopId, commander.transform.rotation, distance + 1, true);
 		ServerSend.SetInAttackForm(Server.clients[clientId].enemyClient.id, commander.playerController.troopId, commander.transform.rotation, distance + 1, false);
+		stopWatch.Stop();
+		GameServer.Debug.Log("StopWatch stopped at: " + stopWatch.ElapsedMilliseconds);
 		return distance;
 	}
 
-	private static float MakeFormation(NormalComponentsObject formation, List<TroopComponents> troops, TroopComponents commander, int id)
+	private static float MakeFormation(FormationObject formation, List<TroopComponents> troops, TroopComponents commander, int id)
 	{
-		Debug.Log("Make Formation");
 		float distance = 0f;
-		KdTree<BaseClassGameObject> allChildren = new KdTree<BaseClassGameObject>();
-		for (int i = 0; i < formation.transform.childCount; i++)
+		KdTree<FormationChild> allChildren = new KdTree<FormationChild>();
+		for (int i = 0; i < formation.formationObjects.Length; i++)
 		{
-			float tempDistance = (formation.transform.GetChild(0).position - formation.transform.GetChild(i).position).sqrMagnitude;
+			float tempDistance = (formation.formationObjects[i].transform.position - formation.formationObjects[i].transform.position).sqrMagnitude;
 			if (tempDistance > distance)
 				distance = tempDistance;
 			//allChildren.Add(formation.transform.GetChild(i).position);
 			//bekommen von allen children in die Listee, jedoch auch noch allee equivalenten Punkte bekommen.
-			allChildren.Add(new BaseClassGameObject() { transform = formation.transform.GetChild(i) });
+			allChildren.Add(formation.formationObjects[i]);
 			if (i == troops.Count)
 			{
 				for (int y = 1; y < 5; y++)
 				{
-					if (i + y >= formation.transform.childCount)
+					if (i + y >= formation.formationObjects.Length)
 						break;
-					if (formation.transform.GetChild(i).name.Contains(formation.transform.GetChild(i + y).name))
+					if (formation.formationObjects[i].transform.name.Contains(formation.formationObjects[i].transform.name))
 					{
-						allChildren.Add(new BaseClassGameObject() { transform = formation.transform.GetChild(i + y) });
+						allChildren.Add(formation.formationObjects[i]);
 					}
 					else
 						break;
@@ -115,7 +119,6 @@ public static class FormationManager
 		}
 		allChildren.RemoveAt(0);
 		allChildren.UpdatePositions();
-		Debug.Log(allChildren.Count);
 		int lines = GetLinesCount(id, troops.Count);
 		commander.attackingSystem.lineInFormation = lines;
 		for (int i = 0; i < troops.Count; i++)
@@ -127,13 +130,12 @@ public static class FormationManager
 			playerControllerTroop.formationId = id;
 			//playerControllerTroop.richAI.endReachedDistance = 0.2f;
 			Transform nearestObject = allChildren.FindClosest(troops[i].transform.position).transform;
-			playerControllerTroop.transformOnAttackGrid = nearestObject;
 			playerControllerTroop.MoveToPosition(nearestObject.position, true);
-			//bekommen von Zahl, auf welchem  die Truppe steht
-			int line = GetLine(id, nearestObject, lines);
-			troops[i].attackingSystem.lineInFormation = line;
 			int index = allChildren.ToList().FindIndex(a => a.transform == nearestObject);
-			Debug.Log(index);
+			//bekommen von Zahl, auf welchem  die Truppe steht
+			int line = GetLine(allChildren[index], lines);
+			playerControllerTroop.transformOnAttackGrid = allChildren[index];
+			troops[i].attackingSystem.lineInFormation = line;
 			//playerControllerTroop.indexOnAttackGrid = nearestObject.GetSiblingIndex();
 			allChildren.RemoveAt(index);
 			allChildren.UpdatePositions();
@@ -141,7 +143,7 @@ public static class FormationManager
 		return Mathf.Sqrt(distance);
 	}
 
-	private static float MakeFormationStayInLine(NormalComponentsObject formation, List<TroopComponents> troops, TroopComponents commander, int id)
+	private static float MakeFormationStayInLine(FormationObject formation, List<TroopComponents> troops, TroopComponents commander, int id)
 	{
 		float distance = 0f;
 		/*KdTree<Transform>[] allchildren = new KdTree<Transform>[formations[id].frontLines.Length];
@@ -156,7 +158,7 @@ public static class FormationManager
 				}
 			}
 		}*/
-		for(int i = 0; i < troops.Count; i++)
+		for (int i = 0; i < troops.Count; i++)
 		{
 			float tempDistance = (formation.transform.GetChild(0).position - formation.transform.GetChild(i).position).sqrMagnitude;
 			if (tempDistance > distance)
@@ -167,17 +169,17 @@ public static class FormationManager
 			playerControllerTroop.tempAttackGrid = true;
 			playerControllerTroop.formationId = id;
 			//playerControllerTroop.richAI.endReachedDistance = 0.2f;
-			Transform nearestObject = formation.transform.GetChild(playerControllerTroop.indexOnAttackGrid);
-			playerControllerTroop.MoveToPosition(nearestObject.position, true);
+			FormationChild nearestObject = formation.formationObjects[playerControllerTroop.indexOnAttackGrid];
+			playerControllerTroop.MoveToPosition(nearestObject.transform.position, true);
 			//bekommen von Zahl, auf welchem  die Truppe steht
 			playerControllerTroop.transformOnAttackGrid = nearestObject;
 		}
 		return Mathf.Sqrt(distance);
 	}
 
-	public static NormalComponentsObject PlaceFormationObjectForCommander(TroopComponents commander, int id)
+	public static FormationObject PlaceFormationObjectForCommander(TroopComponents commander, int id)
 	{
-		NormalComponentsObject formation = formations[id].formationObject.Copy();
+		FormationObject formation = formations[id].formationObject.Copy();
 		formation.transform.parent = commander.transform;
 		//GameObject formation = Instantiate(formations[id].formationObject, commander);
 		formation.transform.name = id.ToString();
@@ -189,31 +191,37 @@ public static class FormationManager
 		return formation;
 	}
 
-	/// <summary>
-	/// auf welcher vorderer Linie die Truppe steht. Denn das ist wichtig, dass die zweite Reihe richtig angreift
-	/// </summary>
-	public static int GetLine(int formationId, Transform transformFromGridTile, int lines)
+	///// <summary>
+	///// auf welcher vorderer Linie die Truppe steht. Denn das ist wichtig, dass die zweite Reihe richtig angreift
+	///// </summary>
+	public static int GetLine(FormationChild transformFromGridTile, int lines)
 	{
-		for (int i = 0; i < formations[formationId].lineFormationObject.transform.childCount; i++)
-		{
-			if(transformFromGridTile.localPosition == formations[formationId].lineFormationObject.transform.GetChild(i).localPosition)
-			{
-				int myLine = int.Parse(formations[formationId].lineFormationObject.transform.GetChild(i).name);
-				return lines - myLine;
-			}
-		}
-		return -4;
+		//for (int i = 0; i < formations[formationId].lineFormationObject.transform.childCount; i++)
+		//{
+		//	if (transformFromGridTile.localPosition == formations[formationId].lineFormationObject.transform.GetChild(i).localPosition)
+		//	{
+		//		int myLine = int.Parse(formations[formationId].lineFormationObject.transform.GetChild(i).name);
+		//		return lines - myLine;
+		//	}
+		//}
+		//return -4;
+		int myLine = transformFromGridTile.line - lines;
+		return myLine;
 	}
 
 	public static int GetLinesCount(int formationId, int controlledTroopsCount)
 	{
-		for (int i = 0; i < formations[formationId].frontLines.Length; i++)
+		int[] LineOrder = formations[formationId].LineOrder;
+		Lines[] allLines = formations[formationId].frontLines;
+		int lastLine = formations[formationId].LineOrder[formations[formationId].LineOrder.Length-1] -1;
+		for (int i = 0; i < formations[formationId].LineOrder.Length; i++)
 		{
-			if (controlledTroopsCount >= formations[formationId].frontLines[i].linesindexes[0] && controlledTroopsCount <= formations[formationId].frontLines[i].linesindexes[formations[formationId].frontLines[i].linesindexes.Length -1])
-				return i + 1;
-			if (i == formations[formationId].frontLines.Length - 1)
-				return i+ 1;
+			if (formations[formationId].frontLines[formations[formationId].LineOrder[i] - 1].lineStart > controlledTroopsCount)
+			{
+				lastLine = formations[formationId].LineOrder[i - 1] - 1;
+				break;
+			}
 		}
-		return 0;
+		return formations[formationId].frontLines[lastLine].linesInFrontEmpty;
 	}
 }

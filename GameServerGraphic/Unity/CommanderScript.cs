@@ -21,10 +21,11 @@ public class CommanderScript : MonoBehaviour
 	public float formationRadius;
 	public float minAttackRange = 0f;
 	public AttackStyle attackStyleAtMoment = 0;
-	public NormalComponentsObject formationObject;
+	public FormationObject formationObject;
 	//public NormalComponentsObject circleRenderer;
 	public List<Transform> attackTroops = new List<Transform>();
 	public List<TroopComponents> controlledTroops = new List<TroopComponents>();
+	public List<List<TroopComponents>> attackingLines; //-->attackingLines[0] ist erste Linie, attackingLines[0][0] ist erste Truppe auf erstert Linie
 	public TroopComponents troopObject;
 
 	protected Vector3 positonToWalkTo;
@@ -424,6 +425,21 @@ public class CommanderScript : MonoBehaviour
 		//}
 		//CancelInvoke();
 		//}
+		attackingLines = new List<List<TroopComponents>>();
+		for (int i = 0; i < controlledTroops.Count; i++)
+		{
+			//wenn sterben, die Truppe hinten dran Informieren um seine Platz einzunehem, wenn schon tot oder weg, eine nächsten in der nächsten Riehe finden
+			int myLine = controlledTroops[i].attackingSystem.lineInFormation;
+			if (attackingLines.Count < myLine)
+				attackingLines.Add(new List<TroopComponents>());
+			if(!attackingLines[myLine].Contains(controlledTroops[i]))
+				attackingLines[myLine].Add(controlledTroops[i]);
+			controlledTroops[i].richAI.onSearchPath += controlledTroops[i].playerController.UpdateEnemyTroopPoisition;
+			controlledTroops[i].playerController.isAttacking = true;
+			controlledTroops[i].transform.parent = null;
+		}
+		richAI.onSearchPath += playerController.UpdateEnemyTroopPoisition;
+		playerController.isAttacking = true;
 	}
 
 	/// <summary>

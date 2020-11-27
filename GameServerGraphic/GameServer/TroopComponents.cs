@@ -38,7 +38,7 @@ namespace GameServer
 		{
 			playerController.Update();
 			richAI.Update();
-			attackingSystem.Update();
+			//attackingSystem.Update();
 		}
 
 		public NormalComponentsObject GetParentNormalComponents()
