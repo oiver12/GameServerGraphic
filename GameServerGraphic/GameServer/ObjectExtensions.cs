@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Reflection;
+using System.Windows.Forms;
 using GameServer.ArrayExtensions;
 
 //Got it from https://stackoverflow.com/questions/129389/how-do-you-do-a-deep-copy-of-an-object-in-net/11308879#11308879
@@ -127,6 +129,19 @@ namespace GameServer
 				}
 				return false;
 			}
+		}
+	}
+
+	public static class RichTextBoxExtensions
+	{
+		public static void AppendText(this RichTextBox box, string text, Color color)
+		{
+			box.SelectionStart = box.TextLength;
+			box.SelectionLength = 0;
+
+			box.SelectionColor = color;
+			box.AppendText(text);
+			box.SelectionColor = box.ForeColor;
 		}
 	}
 

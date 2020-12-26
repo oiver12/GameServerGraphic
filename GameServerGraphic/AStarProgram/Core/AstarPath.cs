@@ -21,6 +21,7 @@ using Thread = System.Threading.Thread;
 /// \nosubgrouping
 /// \ingroup relevant
 /// </summary>
+[System.Serializable]
 public class AstarPath /*: VersionedMonoBehaviour*/ {
 	/// <summary>The version number for the A* %Pathfinding Project</summary>
 	public static readonly System.Version Version = new System.Version(4, 3, 10);
@@ -149,7 +150,6 @@ public class AstarPath /*: VersionedMonoBehaviour*/ {
 	///
 	/// Note: Only relevant in the editor
 	///
-	/// TODO: Add a showOnlyLastPath flag to indicate whether to draw every node or only the ones visited by the latest path.
 	/// </summary>
 	public bool showSearchTree = false;
 
@@ -169,7 +169,7 @@ public class AstarPath /*: VersionedMonoBehaviour*/ {
 	///
 	/// [Open online documentation to see images]
 	/// </summary>
-	public PathLog logPathResults = PathLog.Normal;
+	public PathLog logPathResults = PathLog.OnlyErrors;
 
 	/// <summary>@}</summary>
 	#endregion

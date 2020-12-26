@@ -8,6 +8,9 @@ using MEC;
 using System.Threading;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+using System.Reflection;
 
 namespace GameServerGraphic
 {
@@ -20,6 +23,7 @@ namespace GameServerGraphic
 		public static Control.ControlCollection myControls;
 		public static Graphics myGraphics;
 		public static List<Tuple<Transform, PictureBox>> troopsImages = new List<Tuple<Transform, PictureBox>>();
+		public static List<Tuple<Vector3, PictureBox>> otherPoints = new List<Tuple<Vector3, PictureBox>>();
 		public static int placedTroops = 0;
 		const float minX = 70;
 		const float maxX = 494;
@@ -34,7 +38,7 @@ namespace GameServerGraphic
 		Vector2 offsetFromCenter = new Vector2(0f, 0f);
 		float walkSpeedGraphics = 500f;
 		float zoomSpeedGraphics = 0.75f;
-		static TextBox textBoxStatic;
+		static RichTextBox textBoxStatic;
 
 		float randomFloat(Random rand)
 		{
@@ -109,12 +113,12 @@ namespace GameServerGraphic
 			Thread mainThread = new Thread(new ThreadStart(MainThread));
 			mainThread.Start();
 			//MainThread();
-			textBox1.Text = "Test";
 			Server.Start(50, 8000);
 		}
 
 		private void MainThread()
 		{
+
 			Console.WriteLine($"Main thread started. Running at {Constants.TICKS_PER_SEC} ticks per second.");
 			//TroopComponents troopTest = new TroopComponents(new Transform(new Vector3(374.1f, -67.59f, -8.1f), Quaternion.Identity), new Seeker(), new RichAI(), new AttackingSystem(), new PlayerController(), new CommanderScript());
 			//troopTest.seeker.StartPath(troopTest.transform.position, new Vector3(troopTest.transform.position.x + 10f, troopTest.transform.position.y, troopTest.transform.position.z), OnPathComplete);
@@ -163,7 +167,6 @@ namespace GameServerGraphic
 
 		void Render()
 		{
-			Vector2 f = TranslateToNewMap(new Vector2(0f, 0f));
 			for (int i = 0; i < troopsImages.Count; i++)
 			{
 				Vector3 troopPos = troopsImages[i].Item1.position;
@@ -177,6 +180,20 @@ namespace GameServerGraphic
 				test = TranslateToNewMap(test);
 				troopsImages[i].Item2.Location = new Point((int)test.x, (int)test.y);
 				troopsImages[i].Item2.BringToFront();
+			}
+			for (int i = 0; i < otherPoints.Count; i++)
+			{
+				Vector3 troopPos = otherPoints[i].Item1;
+				//troopPos = ConvertToLocal(new Vector2(troopPos.x, troopPos.z));
+				//Debug.Log(ConvertToLocal(troopPos));
+				float relativx = (troopPos.x - minX) / xLenght;
+				float relativz = (troopPos.z - minZ) / zLength;
+				relativx = Mathf.Clamp01(relativx);
+				relativz = Mathf.Clamp01(relativz);
+				Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
+				test = TranslateToNewMap(test);
+				otherPoints[i].Item2.Location = new Point((int)test.x, (int)test.y);
+				otherPoints[i].Item2.BringToFront();
 			}
 			//Debug.Log(myControls[1].Location);
 			UIThreadManager.UpdateMain();
@@ -251,10 +268,20 @@ namespace GameServerGraphic
 			}
 		}
 
-		public static void DrawPointAt(Vector3 worldPosition, int width)
+		public static void SpawnPointAt(Vector3 worldPosition, Color color, int width)
 		{
-			Point camPoint = GetInCam(worldPosition);
-			UIThreadManager.ExecuteOnMainThread(() => myGraphics.FillRectangle(Brushes.Black, camPoint.X, camPoint.Y, width, width));
+			PictureBox point = new PictureBox();
+			point.SizeMode = PictureBoxSizeMode.StretchImage;
+			point.ClientSize = new Size(width, width);
+			point.BackColor = color;
+			otherPoints.Add(new Tuple<Vector3, PictureBox>(worldPosition, point));
+			UIThreadManager.ExecuteOnMainThread(() => myControls.Add(point));
+		}
+		public static void UpdatePointPosition(int indexInTuple, Vector3 position)
+		{
+			//Tuples sind immutable also ersetzten, nicht sehr gut keine bessere Lösung gefunden
+			Tuple<Vector3, PictureBox> tempTuple = new Tuple<Vector3, PictureBox>(position,otherPoints[indexInTuple].Item2);
+			otherPoints[indexInTuple] = tempTuple;
 		}
 
 		private void Form1_KeyPress(object sender, KeyPressEventArgs e)
@@ -289,6 +316,26 @@ namespace GameServerGraphic
 			mapPicture.Location = new Point((int)(mapSizeX / 2 - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)(mapSizeY / 2 - mapPicture.Size.Height / 2 + offsetFromCenter.y));
 		}
 
+		public static void AddToFormConsol(string text, bool error = false)
+		{
+			if (!error)
+			{
+				UIThreadManager.ExecuteOnMainThread(() =>
+				{
+					textBoxStatic.AppendText(text + "\r\n", Color.Black);
+				}
+				);
+			}
+			else
+			{
+				UIThreadManager.ExecuteOnMainThread(() =>
+				{
+					textBoxStatic.AppendText(text + "\r\n", Color.Red);
+				}
+				);
+			}
+		}
+
 		private static void panel1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
 			for (int i = 0; i < troopsImages.Count; i++)
@@ -298,6 +345,143 @@ namespace GameServerGraphic
 					TroopComponents thisTroops = troopsImages[i].Item1.troopObject;
 					Debug.Log(thisTroops.transform.name);
 				}
+			}
+		}
+
+		/// <summary>
+		/// Serialize von clientId placebelTroops und placedTroops und vom enemyClient
+		/// </summary>
+		/// <param name="clientId"></param>
+		static void SerializeGame(int clientId, bool isEnemyClient)
+		{
+			FileStream fs;
+			if (!isEnemyClient)
+				fs = new FileStream("TestSerialize.dat", FileMode.Create);
+			else
+				fs = new FileStream("TestSerializeEnemy.dat", FileMode.Create);
+
+			BinaryFormatter formatter = new BinaryFormatter();
+			MemoryStream placebelTroops = new MemoryStream();
+			MemoryStream placedTroops = new MemoryStream();
+			Packet _packet = new Packet();
+			try
+			{
+				_packet.Write(clientId);
+				formatter.Serialize(placebelTroops, Server.clients[clientId].player.placebelTroops);
+				_packet.Write(placebelTroops.ToArray().Length);
+				_packet.Write(placebelTroops.ToArray());
+
+				formatter.Serialize(placedTroops, Server.clients[clientId].player.placedTroops);
+				_packet.Write(placedTroops.ToArray().Length);
+				_packet.Write(placedTroops.ToArray());
+				fs.Write(_packet.ToArray(), 0, _packet.Length());
+				ServerSend.SendSerializeInGame(clientId, true);
+				//formatter.Serialize(fs, troopObject);
+			}
+			catch(SerializationException e)
+			{
+				Debug.LogError(e);
+				throw;
+			}
+			finally
+			{
+				fs.Close();
+				placebelTroops.Close();
+				placedTroops.Close();
+			}
+		}
+
+		static void deserializeGame(bool isEnemyClient)
+		{
+			try
+			{
+				BinaryFormatter formatter = new BinaryFormatter();
+				byte[] deserializeData;
+				if (!isEnemyClient)
+				{
+					using (var stream = new FileStream("TestSerialize.dat", FileMode.Open))
+					{
+						deserializeData = new byte[(int)stream.Length];
+						stream.Read(deserializeData, 0, (int)stream.Length);
+					}
+				}
+				else
+				{
+					using (var stream = new FileStream("TestSerializeEnemy.dat", FileMode.Open))
+					{
+						deserializeData = new byte[(int)stream.Length];
+						stream.Read(deserializeData, 0, (int)stream.Length);
+					}
+				}
+				Packet _packet = new Packet(deserializeData);
+				int clientId = _packet.ReadInt();
+				int placebelTroopsLength = _packet.ReadInt();
+				using (var ms = new MemoryStream(_packet.ReadBytes(placebelTroopsLength)))
+				{
+					Server.clients[clientId].player.placebelTroops = (List<PlaceTroopsStruct>)formatter.Deserialize(ms);
+				}
+				//TODO set richpath graph property
+				int placedTroopsLength = _packet.ReadInt();
+				using (var ms = new MemoryStream(_packet.ReadBytes(placedTroopsLength)))
+				{
+					Server.clients[clientId].player.placedTroops = (List<PlacedTroopStruct>)formatter.Deserialize(ms);
+				}
+                foreach(var placedTroop in Server.clients[clientId].player.placedTroops)
+                {
+					placedTroop.gameObject.playerController.myClient = Server.clients[clientId];
+					placedTroop.gameObject.attackingSystem.myClient = Server.clients[clientId];
+					placedTroop.gameObject.richAI.InitializeAfterDeserialized();
+					AddTroop(placedTroop.gameObject.transform);
+                }
+				Server.clients[clientId].player.InizializeKdTree();
+				//TroopComponents vegleich = troopsImages[0].Item1.troopObject;
+				ServerSend.SendSerializeInGame(clientId, false);
+				Debug.Log("Worked");
+			}
+			catch (SerializationException ex)
+			{
+				Debug.Log(ex);
+				throw;
+
+			}
+		}
+
+		private void button1_Click(object sender, EventArgs e)
+		{
+			foreach(int i in Server.clients.Keys)
+			{
+				try
+				{
+					List<PlaceTroopsStruct> placed = Server.clients[i].player.placebelTroops;
+				}
+				catch
+				{
+					Debug.Log("Nicht hier");
+					continue;
+				}
+				SerializeGame(i, false);
+				SerializeGame(Server.clients[i].enemyClient.id, true);
+				break;
+			}
+		}
+
+		private void button2_Click(object sender, EventArgs e)
+		{
+			foreach (int i in Server.clients.Keys)
+			{
+				try
+				{
+					List<PlaceTroopsStruct> placed = Server.clients[i].player.placebelTroops;
+				}
+				catch
+				{
+					Debug.Log("Nicht hier");
+					continue;
+				}
+				Debug.Log("Hier");
+				deserializeGame(false);
+				deserializeGame(true);
+				break;
 			}
 		}
 #endif

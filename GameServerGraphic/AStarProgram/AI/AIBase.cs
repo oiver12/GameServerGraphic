@@ -13,6 +13,7 @@ namespace Pathfinding {
 	/// See: <see cref="Pathfinding.RichAI"/>
 	/// See: <see cref="Pathfinding.IAstarAI"/> (all movement scripts implement this interface)
 	/// </summary>
+	[System.Serializable]
 	public abstract class AIBase /*: MonoBehaviour*/
 	{
 		/// <summary>\copydoc Pathfinding::IAstarAI::radius</summary>
@@ -347,7 +348,9 @@ namespace Pathfinding {
 			// If gravity is used depends on a lot of things.
 			// For example when a non-kinematic rigidbody is used then the rigidbody will apply the gravity itself
 			// Note that the gravity can contain NaN's, which is why the comparison uses !(a==b) instead of just a!=b.
-			usingGravity = !(gravity == Vector3.zero) && (!updatePosition);
+			//usingGravity = !(gravity == Vector3.zero) && (!updatePosition);
+			//TODO besser machen falls Gravitation verwendet wird
+			usingGravity = false;
 			if (canMove) {
 				Vector3 nextPosition;
 				Quaternion nextRotation;
@@ -557,7 +560,6 @@ namespace Pathfinding {
 			//	tr.position = currentPosition;
 			//	controller.Move((nextPosition - currentPosition) + accumulatedMovementDelta);
 			//	// Grab the position after the movement to be able to take physics into account
-			//	// TODO: Add this into the clampedPosition calculation below to make RVO better respond to physics
 			//	currentPosition = tr.position;
 			//	if (controller.isGrounded) verticalVelocity = 0;
 			//} else {

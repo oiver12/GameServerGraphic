@@ -1,8 +1,10 @@
 ﻿using Pathfinding;
 using GameServerGraphic;
+using System;
 
 namespace GameServer
 {
+	[Serializable]
 	public class TroopComponents : BaseClassGameObject
 	{
 		public bool enabled = true;

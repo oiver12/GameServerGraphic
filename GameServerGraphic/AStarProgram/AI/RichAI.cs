@@ -5,7 +5,10 @@ using System.Collections.Generic;
 namespace Pathfinding {
 	using Pathfinding.RVO;
 	using Pathfinding.Util;
+	using System.Runtime.Serialization;
+
 	/// <summary>Advanced AI for navmesh based graphs.</summary>
+	[System.Serializable]
 	public partial class RichAI : AIBase, IAstarAI {
 		/// <summary>
 		/// Max acceleration of the agent.
@@ -116,7 +119,7 @@ namespace Pathfinding {
 		/// </summary>
 
 		/// <summary>Holds the current path that this agent is following</summary>
-		protected readonly RichPath richPath = new RichPath();
+		[System.NonSerialized] protected RichPath richPath = new RichPath();
 
 		protected bool delayUpdatePath;
 		protected bool lastCorner;
@@ -256,6 +259,15 @@ namespace Pathfinding {
 			}
 		}
 
+		public void InitializeAfterDeserialized()
+		{
+			richPath = new RichPath();
+			OnEnable(troopObject);
+			Start();
+			updatePosition = true;
+			updateRotation = true;
+		}
+
 		protected override void OnPathComplete (Path p) {
 			waitingForPathCalculation = false;
 			p.Claim(this);
@@ -329,7 +341,6 @@ namespace Pathfinding {
 			Vector3 position = fn.Update(simulatedPosition, nextCorners, 2, out lastCorner, out requiresRepath);
 
 			if (requiresRepath && !waitingForPathCalculation && canSearch) {
-				// TODO: What if canSearch is false? How do we notify other scripts that might be handling the path calculation that a new path needs to be calculated?
 				SearchPath();
 			}
 
@@ -340,7 +351,6 @@ namespace Pathfinding {
 		protected override void MovementUpdateInternal (float deltaTime, out Vector3 nextPosition, out Quaternion nextRotation) {
 			if (updatePosition) simulatedPosition = tr.position;
 			if (updateRotation) simulatedRotation = tr.rotation;
-
 			RichPathPart currentPart = richPath.GetCurrentPart();
 
 			//if (currentPart is RichSpecial)
@@ -525,7 +535,6 @@ namespace Pathfinding {
 		//	// If a path completed during the time we traversed the special connection, we need to recalculate it
 		//	if (delayUpdatePath) {
 		//		delayUpdatePath = false;
-		//		// TODO: What if canSearch is false? How do we notify other scripts that might be handling the path calculation that a new path needs to be calculated?
 		//		if (canSearch) SearchPath();
 		//	}
 		//}

@@ -19,6 +19,7 @@ public enum ServerPackets
 	StartFight = 11,
 	fightArcher = 12,
 	troopDamageToGroup = 13,
+	serializeInGameDebugging = 14,
 }
 
 /// <summary>Sent from client to server.</summary>

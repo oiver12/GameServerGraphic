@@ -22,6 +22,7 @@ namespace Pathfinding {
 	/// [Open online documentation to see images]
 	/// [Open online documentation to see images]
 	/// </summary>
+	[System.Serializable]
 	[JsonOptIn]
 	[Pathfinding.Util.Preserve]
 	public class NavMeshGraph : NavmeshBase, IUpdatableGraph {
@@ -95,7 +96,6 @@ namespace Pathfinding {
 		}
 
 		public override GraphTransform CalculateTransform () {
-			Debug.LogError("Has called CalculateTransform");
 			Vector3 sourcemeshminandsclae = new Vector3(-106.6f, -69.7f, -258.7f);
 			return new GraphTransform(Matrix4x4.TRS(offset, Quaternion.Euler(rotation), Vector3.one) * Matrix4x4.TRS(sourcemeshminandsclae, Quaternion.Identity, Vector3.one));
 			//return new GraphTransform(Matrix4x4.TRS(offset, Quaternion.Euler(rotation), Vector3.one) * Matrix4x4.TRS(sourceMesh != null ? sourceMesh.bounds.min * scale : cachedSourceMeshBoundsMin * scale, Quaternion.Identity, Vector3.one));

@@ -14,6 +14,7 @@ namespace Pathfinding {
 	using System.Linq;
 
 	/// <summary>Base class for RecastGraph and NavMeshGraph</summary>
+	[System.Serializable]
 	public abstract class NavmeshBase : NavGraph, INavmesh, INavmeshHolder, ITransformedGraph
 		, IRaycastableGraph {
 #if ASTAR_RECAST_LARGER_TILES
@@ -841,7 +842,6 @@ namespace Pathfinding {
 				if (nodes[i] != null) batchNodesToDestroy.Add(nodes[i]);
 			}
 			ObjectPool<BBTree>.Release(ref tile.bbTree);
-			// TODO: Pool tile object and various arrays in it?
 			tiles[x + z*tileXCount] = null;
 		}
 

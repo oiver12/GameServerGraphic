@@ -6,6 +6,7 @@ namespace Pathfinding {
 	using Pathfinding.Util;
 
 	/// <summary>Represents a connection to another node</summary>
+    [System.Serializable]
 	public struct Connection {
 		/// <summary>Node which this connection goes to</summary>
 		public GraphNode node;
@@ -48,6 +49,7 @@ namespace Pathfinding {
 		}
 	}
 
+    [System.Serializable]
 	/// <summary>Base class for all nodes</summary>
 	public abstract class GraphNode {
 		/// <summary>Internal unique index. Also stores some bitpacked values such as <see cref="TemporaryFlag1"/> and <see cref="TemporaryFlag2"/>.</summary>
@@ -563,6 +565,7 @@ namespace Pathfinding {
 		}
 	}
 
+    [System.Serializable]
 	public abstract class MeshNode : GraphNode {
 		protected MeshNode (AstarPath astar) : base(astar) {
 		}

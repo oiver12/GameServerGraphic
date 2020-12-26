@@ -10,6 +10,7 @@ public enum TroopClass
 }
 
 //[CreateAssetMenu(fileName = "New Troop", menuName = "Troops")]
+[System.Serializable]
 public class Troops
 {
 	//im Spiel können die Variablen nicht mehr geändert werden

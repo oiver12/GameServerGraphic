@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using GameServerGraphic;
 
 namespace GameServer
 {
@@ -10,12 +11,20 @@ namespace GameServer
 	public sealed class Debug
 	{
 		/// <summary>
-		///   <para>Logs message to the Unity Console.</para>
+		///   <para>Logs message to the Olivers Alpha Console.</para>
 		/// </summary>
 		/// <param name="message">String or object to be converted to string representation for display.</param>
 		/// <param name="context">Object to which the message applies.</param>
 		public static void Log(object message, bool printStackTrace = false)
 		{
+			try
+			{
+				Form1.AddToFormConsol(message.ToString());
+			}
+			catch
+			{
+
+			}
 			//AttachConsole(ATTACH_PARENT_PROCESS);
 			if (printStackTrace)
 			{
@@ -92,6 +101,7 @@ namespace GameServer
 		/// <param name="context">Object to which the message applies.</param>
 		public static void LogError(object message)
 		{
+			Form1.AddToFormConsol(message.ToString(), true);
 			//AttachConsole(ATTACH_PARENT_PROCESS);
 			Console.WriteLine(message + " ERROR " + GetStackTrace());
 			//Debug.logger.Log(LogType.Error, message);
@@ -104,6 +114,7 @@ namespace GameServer
 		/// <param name="context">Object to which the message applies.</param>
 		public static void LogError(object message, Object context)
 		{
+			Form1.AddToFormConsol(message.ToString(), true);
 			//AttachConsole(ATTACH_PARENT_PROCESS);
 			Console.WriteLine(message + "ERROR");
 			//Debug.logger.Log(LogType.Error, message, context);

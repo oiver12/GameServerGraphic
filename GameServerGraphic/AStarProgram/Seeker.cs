@@ -17,6 +17,7 @@ namespace Pathfinding
 	/// See: calling-pathfinding (view in online documentation for working links)
 	/// See: modifiers (view in online documentation for working links)
 	/// </summary>
+	[System.Serializable]
 	public class Seeker
 	{
 		/// <summary>
@@ -483,7 +484,6 @@ namespace Pathfinding
 
 			if (mtp != null)
 			{
-				// TODO: Allocation, cache
 				var callbacks = new OnPathDelegate[mtp.targetPoints.Length];
 
 				for (int i = 0; i < callbacks.Length; i++)

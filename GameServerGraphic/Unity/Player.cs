@@ -3,6 +3,7 @@ using GameServer;
 using Pathfinding;
 using GameServerGraphic;
 
+[System.Serializable]
 public class PlaceTroopsStruct
 {
 
@@ -17,6 +18,7 @@ public class PlaceTroopsStruct
 	public int troopsPlaced;
 }
 
+[System.Serializable]
 public class PlacedTroopStruct
 {
 	public PlacedTroopStruct(Troops _troop, int _id, TroopComponents _gameObject, float _health)
@@ -32,7 +34,8 @@ public class PlacedTroopStruct
 	public float health;
 }
 
-class Player
+[System.Serializable]
+public class Player
 {
 	public string username;
 	public List<PlaceTroopsStruct> placebelTroops = new List<PlaceTroopsStruct>();
@@ -41,7 +44,7 @@ class Player
 	public Player enemyPlayer;
 
 	KdTree<TroopComponents> troopsKDTree = new KdTree<TroopComponents>();
-	List<Transform> allGroups;
+	//List<Transform> allGroups;
 	//KDTree kd = new KDTree();
 
 	public Player(int _id, string _username)
@@ -431,6 +434,15 @@ class Player
 	{
 		troopsKDTree.UpdatePositions();
 		return troopsKDTree.FindClosest(position);
+	}
+
+	public void InizializeKdTree()
+	{
+		troopsKDTree = new KdTree<TroopComponents>();
+		for (int i = 0; i < placedTroops.Count; i++)
+		{
+			troopsKDTree.Add(placedTroops[i].gameObject);
+		}
 	}
 
 	public void ResetPlayer()

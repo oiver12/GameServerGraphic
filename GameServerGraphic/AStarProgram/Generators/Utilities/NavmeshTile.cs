@@ -2,6 +2,7 @@ namespace Pathfinding {
 	using Pathfinding.Util;
 	using GameServer;
 
+	[System.Serializable]
 	public class NavmeshTile : INavmeshHolder {
 		/// <summary>Tile triangles</summary>
 		public int[] tris;

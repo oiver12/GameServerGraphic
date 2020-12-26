@@ -4,6 +4,7 @@ using MEC;
 
 public class ArcherAttack : AttackingSystem
 {
+	[System.NonSerialized]
 	Client myClient;
 	Transform parent;
 	float preRadius;

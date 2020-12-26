@@ -515,7 +515,6 @@ namespace Pathfinding {
 		}
 
 		protected override void Cleanup () {
-			// TODO: Set flag1 = false as well?
 			if (startNode != null) {
 				var pathStartNode = pathHandler.GetPathNode(startNode);
 				pathStartNode.flag1 = false;

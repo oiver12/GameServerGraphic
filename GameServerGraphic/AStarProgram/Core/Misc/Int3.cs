@@ -2,6 +2,7 @@ using GameServer;
 
 namespace Pathfinding {
 	/// <summary>Holds a coordinate in integers</summary>
+	[System.Serializable]
 	public struct Int3 : System.IEquatable<Int3> {
 		public int x;
 		public int y;

@@ -1,5 +1,6 @@
 ﻿using GameServer;
 
+[System.Serializable]
 public struct Rect3D
 {
 	private Vector3 m_Center;

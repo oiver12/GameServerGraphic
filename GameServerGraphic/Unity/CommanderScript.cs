@@ -2,6 +2,9 @@
 using GameServer;
 using Pathfinding;
 using MEC;
+using System;
+using GameServerGraphic;
+using System.Drawing;
 
 public enum AttackStyle
 {
@@ -10,6 +13,7 @@ public enum AttackStyle
 	Charge
 }
 
+[System.Serializable]
 public class CommanderScript : MonoBehaviour
 {
 
@@ -25,7 +29,7 @@ public class CommanderScript : MonoBehaviour
 	//public NormalComponentsObject circleRenderer;
 	public List<Transform> attackTroops = new List<Transform>();
 	public List<TroopComponents> controlledTroops = new List<TroopComponents>();
-	public List<List<TroopComponents>> attackingLines; //-->attackingLines[0] ist erste Linie, attackingLines[0][0] ist erste Truppe auf erstert Linie
+	public List<TroopComponents>[] attackingLines; //-->attackingLines[0] ist erste Linie, attackingLines[0][0] ist erste Truppe auf erstert Linie
 	public TroopComponents troopObject;
 
 	protected Vector3 positonToWalkTo;
@@ -209,6 +213,8 @@ public class CommanderScript : MonoBehaviour
 			//der Commander wenn der angreifft läuft einen Bogen um in einem richtigen Winkel auf die Truppe zu treffen. Diese Winkel sind bie Formationen definiert
 			positonToWalkTo = GetPointBeforeFormation(enemyAttackPlayer, preRadius);
 			middlePoint = getCirlceMiddlePoint(enemyAttackPlayer.transform);
+			Form1.SpawnPointAt(middlePoint, Color.Green, 10);
+			Form1.SpawnPointAt(positonToWalkTo, Color.Red, 10);
 			playerController.circleMiddlePoint = middlePoint;
 			//circleRenderer.transform.position = middlePoint;
 			//circleRenderer.GetComponent<LineRendererCircle>().radius = Vector3.Distance(transform.position, middlePoint);
@@ -383,9 +389,15 @@ public class CommanderScript : MonoBehaviour
 	protected virtual IEnumerator<float> CheckForDistanceCoroutine()
 	{
 		hasToCheckDistance = true;
+		float smallestDistance = float.PositiveInfinity;
 		while (hasToCheckDistance)
 		{
-			if ((troopObject.transform.position - positonToWalkTo).sqrMagnitude < 0.5f * 0.5f)
+			//if ((troopObject.transform.position - positonToWalkTo).magnitude < smallestDistance)
+			//	smallestDistance = (troopObject.transform.position - positonToWalkTo).magnitude;
+			// TODO better distance Search MACH DAS NICHT SO SEHR SCHLECHT
+			//positonToWalkTo = (middlePoint - positonToWalkTo).normalized * (troopObject.transform.position - middlePoint).magnitude;
+			//Form1.UpdatePointPosition(1, positonToWalkTo);
+			if ((troopObject.transform.position - positonToWalkTo).sqrMagnitude < 1f)
 			{
 				Debug.Log("Ckeck for Distance finished");
 				hasToCheckDistance = false;
@@ -425,19 +437,29 @@ public class CommanderScript : MonoBehaviour
 		//}
 		//CancelInvoke();
 		//}
-		attackingLines = new List<List<TroopComponents>>();
+		Debug.Log("oJ");
+		attackingLines = new List<TroopComponents>[20];
+		int maxLine = 0;
 		for (int i = 0; i < controlledTroops.Count; i++)
 		{
 			//wenn sterben, die Truppe hinten dran Informieren um seine Platz einzunehem, wenn schon tot oder weg, eine nächsten in der nächsten Riehe finden
 			int myLine = controlledTroops[i].attackingSystem.lineInFormation;
-			if (attackingLines.Count < myLine)
-				attackingLines.Add(new List<TroopComponents>());
-			if(!attackingLines[myLine].Contains(controlledTroops[i]))
-				attackingLines[myLine].Add(controlledTroops[i]);
+			if (attackingLines[myLine - 1] == null)
+			{
+				attackingLines[myLine - 1] = new List<TroopComponents>();
+				maxLine++;
+			}
+			if (!attackingLines[myLine - 1].Contains(controlledTroops[i]))
+			{
+				attackingLines[myLine - 1].Add(controlledTroops[i]);
+			}
+			controlledTroops[i].richAI.enabled = true;
+			controlledTroops[i].richAI.canMove = true;
 			controlledTroops[i].richAI.onSearchPath += controlledTroops[i].playerController.UpdateEnemyTroopPoisition;
 			controlledTroops[i].playerController.isAttacking = true;
 			controlledTroops[i].transform.parent = null;
 		}
+		Array.Resize(ref attackingLines, maxLine);
 		richAI.onSearchPath += playerController.UpdateEnemyTroopPoisition;
 		playerController.isAttacking = true;
 	}

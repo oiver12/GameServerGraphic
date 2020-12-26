@@ -207,7 +207,6 @@ namespace Pathfinding {
 		/// Returns the approximate shortest squared distance between x,z and the segment p-q.
 		/// The segment is not considered infinite.
 		/// This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
-		/// TODO: Is this actually approximate? It looks exact.
 		/// </summary>
 		public static float SqrDistancePointSegmentApproximate (int x, int z, int px, int pz, int qx, int qz) {
 			float pqx = (float)(qx - px);
@@ -234,7 +233,6 @@ namespace Pathfinding {
 		/// Returns the approximate shortest squared distance between x,z and the segment p-q.
 		/// The segment is not considered infinite.
 		/// This function is not entirely exact, but it is about twice as fast as DistancePointSegment2.
-		/// TODO: Is this actually approximate? It looks exact.
 		/// </summary>
 		public static float SqrDistancePointSegmentApproximate (Int3 a, Int3 b, Int3 p) {
 			float pqx = (float)(b.x - a.x);
@@ -583,7 +581,6 @@ namespace Pathfinding {
 		/// Returns if the ray (start1, end1) intersects the segment (start2, end2).
 		/// false is returned if the lines are parallel.
 		/// Only the XZ coordinates are used.
-		/// TODO: Double check that this actually works
 		/// </summary>
 		public static bool RaySegmentIntersectXZ (Int3 start1, Int3 end1, Int3 start2, Int3 end2) {
 			Int3 dir1 = end1-start1;
@@ -1376,7 +1373,6 @@ namespace Pathfinding {
 				// Check if the vertex position has already been added
 				// Also check one position up and one down because rounding errors can cause vertices
 				// that should end up in the same position to be offset 1 unit from each other
-				// TODO: Check along X and Z axes as well?
 				int ind;
 				if (!firstVerts.TryGetValue(vertices[i], out ind) && !firstVerts.TryGetValue(vertices[i] + new Int3(0, 1, 0), out ind) && !firstVerts.TryGetValue(vertices[i] + new Int3(0, -1, 0), out ind)) {
 					firstVerts.Add(vertices[i], count);

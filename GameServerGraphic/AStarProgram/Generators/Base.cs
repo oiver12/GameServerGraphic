@@ -24,6 +24,7 @@ namespace Pathfinding {
 	}
 
 	/// <summary>Base class for all graphs</summary>
+	[System.Serializable]
 	public abstract class NavGraph : IGraphInternals {
 		/// <summary>Reference to the AstarPath object in the scene</summary>
 		public AstarPath active;

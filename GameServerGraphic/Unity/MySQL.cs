@@ -23,7 +23,7 @@ public class MySQL
 		}
 		catch (Exception ex)
 		{
-			Debug.Log(ex.ToString());
+			Debug.LogError(ex.ToString());
 			return mySQLSettings;
 			throw;
 		}

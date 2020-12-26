@@ -26,6 +26,7 @@ namespace Pathfinding.Util {
 	/// Defines a transformation from graph space to world space.
 	/// This is essentially just a simple wrapper around a matrix, but it has several utilities that are useful.
 	/// </summary>
+	[System.Serializable]
 	public class GraphTransform : IMovementPlane, ITransform {
 		/// <summary>True if this transform is the identity transform (i.e it does not do anything)</summary>
 		public readonly bool identity;

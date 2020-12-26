@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Pathfinding.Util;
 
 namespace Pathfinding {
+	[System.Serializable]
 	public class RichPath {
 		int currentPart;
 		readonly List<RichPathPart> parts = new List<RichPathPart>();
@@ -150,18 +151,19 @@ namespace Pathfinding {
 			return currentPart < parts.Count ? parts[currentPart] : parts[parts.Count - 1];
 		}
 	}
-
+	[System.Serializable]
 	public abstract class RichPathPart : Pathfinding.Util.IAstarPooledObject {
 		public abstract void OnEnterPool ();
 	}
 
+	[System.Serializable]
 	public class RichFunnel : RichPathPart {
 		readonly List<Vector3> left;
 		readonly List<Vector3> right;
 		List<TriangleMeshNode> nodes;
 		public Vector3 exactStart;
 		public Vector3 exactEnd;
-		NavmeshBase graph;
+		[System.NonSerialized] NavmeshBase graph;
 		int currentNode;
 		Vector3 currentPosition;
 		int checkForDestroyedNodesCounter;

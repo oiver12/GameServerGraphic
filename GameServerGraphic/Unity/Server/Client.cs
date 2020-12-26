@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using GameServer;
 using GameServerGraphic;
 
-class Client
+public class Client
 {
 	public static int dataBufferSize = 4096;
 

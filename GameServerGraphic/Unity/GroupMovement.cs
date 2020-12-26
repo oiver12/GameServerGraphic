@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GameServer;
 
+[System.Serializable]
 public class GroupMovement
 {
 	List<TroopComponents> troopsToWalk = new List<TroopComponents>();

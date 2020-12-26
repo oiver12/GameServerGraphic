@@ -10,7 +10,6 @@ namespace Pathfinding {
 	/// See: https://en.wikipedia.org/wiki/K-d_tree
 	/// </summary>
 	public class PointKDTree {
-		// TODO: Make constant
 		public const int LeafSize = 10;
 		public const int LeafArraySize = LeafSize*2 + 1;
 

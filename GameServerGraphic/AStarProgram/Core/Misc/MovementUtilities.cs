@@ -159,7 +159,6 @@ namespace Pathfinding.Util {
 				// We need this to prevent oscillations and jitter which is what happens if
 				// we let the constant go towards zero. Value is in seconds.
 				const float TimeToReachDesiredVelocity = 0.1f;
-				// TODO: Clamp to ellipse using more accurate acceleration (use rotation speed as well)
 				var finalAcceleration = (targetPoint.normalized*maxSpeed - currentVelocity) * (1f/TimeToReachDesiredVelocity);
 
 				// Clamp the velocity to the maximum acceleration.

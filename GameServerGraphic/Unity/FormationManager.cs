@@ -19,8 +19,6 @@ public static class FormationManager
 
 	public static float SetFormation(int id, List<TroopComponents> troops, TroopComponents commander, int clientId, bool hasToStayInLine)
 	{
-		Stopwatch stopWatch = new Stopwatch();
-		stopWatch.Start();
 		float distance = 0f;
 		commander.richAI.radius = 0.5f;
 		commander.commanderScript.formationId = id;
@@ -84,8 +82,6 @@ public static class FormationManager
 		commander.commanderScript.formationRadius = distance + 1;
 		ServerSend.SetInAttackForm(clientId, commander.playerController.troopId, commander.transform.rotation, distance + 1, true);
 		ServerSend.SetInAttackForm(Server.clients[clientId].enemyClient.id, commander.playerController.troopId, commander.transform.rotation, distance + 1, false);
-		stopWatch.Stop();
-		GameServer.Debug.Log("StopWatch stopped at: " + stopWatch.ElapsedMilliseconds);
 		return distance;
 	}
 
@@ -95,7 +91,7 @@ public static class FormationManager
 		KdTree<FormationChild> allChildren = new KdTree<FormationChild>();
 		for (int i = 0; i < formation.formationObjects.Length; i++)
 		{
-			float tempDistance = (formation.formationObjects[i].transform.position - formation.formationObjects[i].transform.position).sqrMagnitude;
+			float tempDistance = (formation.formationObjects[0].transform.position - formation.formationObjects[i].transform.position).sqrMagnitude;
 			if (tempDistance > distance)
 				distance = tempDistance;
 			//allChildren.Add(formation.transform.GetChild(i).position);

@@ -12,6 +12,7 @@ namespace GameServer
 	/// <summary>
 	///   <para>Representation of 3D vectors and points.</para>
 	/// </summary>
+	[System.Serializable]
 	public struct Vector3
 	{
 		public const float kEpsilon = 1E-05f;

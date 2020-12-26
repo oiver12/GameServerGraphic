@@ -25,6 +25,7 @@ public enum SendState
 	circleWalk
 }
 
+[System.Serializable]
 public class PlayerController : MonoBehaviour
 {
 	public bool enabled = true;
@@ -76,7 +77,9 @@ public class PlayerController : MonoBehaviour
 	Vector3 startingPoint;
 	Rect3D bounds;
 	AttackingSystem attackingSystem;
-	Client myClient;
+
+	[System.NonSerialized]
+	public Client myClient;
 
 
 	public override void Start(TroopComponents _troopComponents)
@@ -104,6 +107,8 @@ public class PlayerController : MonoBehaviour
 		bounds.center = troopObject.transform.position;
 		bounds.size =  new Vector3(1.5f, 1.5f, 1.5f);
 		troopObject.richAI.canSearch = true;
+		//troopObject.richAI.destination = new Vector3(360f, -67f, -7.6f);
+		//Form1.SpawnPointAt(new Vector3(360f, -67f, -7.6f), System.Drawing.Color.Red, 10);
 	}
 
 
@@ -144,6 +149,7 @@ public class PlayerController : MonoBehaviour
 					return;
 				}
 
+				#region deletedTurnDuringWalk
 				//Ray ray = new Ray(richAI., richAI.steeringTarget - startingPoint);
 				//Debug.DrawRay(startingPoint, richAI.steeringTarget - startingPoint);
 				//angleToDirection = Vector3.Angle(ray.direction, richAI.desiredVelocity);
@@ -164,6 +170,7 @@ public class PlayerController : MonoBehaviour
 						return;
 					}
 				}*/
+				#endregion
 
 				remainingTime = Vector3.Distance(pointToSendToClient, troopObject.transform.position) / richAI.desiredVelocity.magnitude;
 
@@ -176,7 +183,6 @@ public class PlayerController : MonoBehaviour
 				//{
 				if (circleWalk)
 				{
-					Form1.DrawPointAt(troopObject.transform.position, 50);
 					movementDirectionCircle = circleMiddlePoint - troopObject.transform.position;
 					movementDirectionCircle = new Vector3(movementDirectionCircle.z, 0, -movementDirectionCircle.x) * factorCircleSide;
 					movementDirectionCircle = movementDirectionCircle.normalized * richAI.maxSpeed;
@@ -251,14 +257,15 @@ public class PlayerController : MonoBehaviour
 			// I.) Nicht weiter weg als .. von AttackGrid Position gehen, wenn Truppe angreifen
 			// II.) Nicht mehr als 3 Truppen pro gegnerische Truppe
 			// III.) Preferiere gegnerische Truppe mit weniger Truppen an sich
-			if ((troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude < maxDistanceToAttackGrid * maxDistanceToAttackGrid)
-			{
+			//if ((troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude < maxDistanceToAttackGrid * maxDistanceToAttackGrid)
+			//{
 				if (enemyTroop == null)
 				{
 					enemyTroop = troopObject.attackingSystem.FindClosest();
 					if (enemyTroop != null)
 					{
 						troopObject.richAI.destination = enemyTroop.transform.position;
+						troopObject.richAI.SearchPath();
 					}
 				}
 				else
@@ -273,13 +280,13 @@ public class PlayerController : MonoBehaviour
 					}
 				}
 
-			}
+			//}
 		}
-		else
-		{
-			//zum AttackGridPunkt laufen, da man sich nicht in der ersten Reihe befindet
-			troopObject.richAI.destination = transformOnAttackGrid.transform.position;
-		}
+		//else
+		//{
+		//	//zum AttackGridPunkt laufen, da man sich nicht in der ersten Reihe befindet
+		//	troopObject.richAI.destination = transformOnAttackGrid.transform.position;
+		//}
 	}
 
 	public void UpdateEnemyTroopPoisition()
@@ -288,7 +295,7 @@ public class PlayerController : MonoBehaviour
 		//	richAI.destination = enemyTroop.transform.position;
 		//else
 		//	richAI.destination = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-		Debug.Log("Calculate Path");
+		//Debug.Log("Calculate Path");
 	}
 
 

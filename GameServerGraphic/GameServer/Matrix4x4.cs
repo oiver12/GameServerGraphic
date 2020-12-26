@@ -8,6 +8,7 @@ namespace GameServer
 	/// <summary>
 	/// A structure encapsulating a 4x4 matrix.
 	/// </summary>
+	[System.Serializable]
 	public struct Matrix4x4
 	{
 		#region Public Fields

@@ -3,6 +3,7 @@ namespace Pathfinding.Util {
 	/// Simple implementation of a GUID.
 	/// Version: Since 3.6.4 this struct works properly on platforms with different endianness such as Wii U.
 	/// </summary>
+	[System.Serializable]
 	public struct Guid {
 		const string hex = "0123456789ABCDEF";
 

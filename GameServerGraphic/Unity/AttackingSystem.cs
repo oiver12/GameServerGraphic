@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using MEC;
 using System;
 
+[System.Serializable]
 public class AttackingSystem : MonoBehaviour
 {
 	public int enemyTroopAttacking = 0;
@@ -14,6 +15,7 @@ public class AttackingSystem : MonoBehaviour
 	public AttackStyle myAttackStyle;
 	public TroopComponents enemyAttackPlayer;
 	public TroopComponents troopObject;
+	public Client myClient;
 
 	public const int attackSearchRange = 25;
 	public const int maxPlayerPerChargeAttack = 3;
@@ -24,8 +26,6 @@ public class AttackingSystem : MonoBehaviour
 	protected float searchSpeed = 0.1f;
 	protected PlayerController playerController;
 	protected object coroutineHandle = null;
-
-	Client myClient;
 	
 	public override void Start(TroopComponents _troopObject)
     {

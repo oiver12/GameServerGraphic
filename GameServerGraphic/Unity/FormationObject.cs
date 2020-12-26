@@ -2,6 +2,7 @@
 
 namespace GameServer
 {
+	[System.Serializable]
 	public class FormationObject
 	{
 		public readonly Transform transform;
@@ -13,7 +14,7 @@ namespace GameServer
 			this.formationObjects = formationObjects;
 		}
 	}
-
+	[System.Serializable]
 	public class FormationChild : BaseClassGameObject
 	{
 		public readonly int line;

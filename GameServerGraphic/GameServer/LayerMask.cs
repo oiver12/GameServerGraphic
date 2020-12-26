@@ -6,6 +6,7 @@ namespace GameServer
 	/// <summary>
 	///   <para>LayerMask allow you to display the LayerMask popup menu in the inspector.</para>
 	/// </summary>
+	[System.Serializable]
 	public struct LayerMask
 	{
 		private int m_Mask;

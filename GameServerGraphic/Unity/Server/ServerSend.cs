@@ -296,5 +296,14 @@ public class ServerSend
 		}
 	}
 
+	public static void SendSerializeInGame(int toClient, bool serialize)
+	{
+		using (Packet _packet = new Packet((int)ServerPackets.serializeInGameDebugging))
+		{
+			_packet.Write(serialize);
+			SendTCPData(toClient, _packet);
+		}
+	}
+
 	#endregion
 }

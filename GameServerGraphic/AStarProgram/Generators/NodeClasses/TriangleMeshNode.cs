@@ -21,6 +21,7 @@ namespace Pathfinding {
 	}
 
 	/// <summary>Node represented by a triangle</summary>
+	[System.Serializable]
 	public class TriangleMeshNode : MeshNode {
 		public TriangleMeshNode (AstarPath astar) : base(astar) {}
 

@@ -278,7 +278,6 @@ namespace Pathfinding.Serialization {
 					}
 					TryEat(',');
 				}
-				Debug.Log(obj.GetType());
 				return obj;
 			}
 		}

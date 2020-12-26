@@ -201,9 +201,7 @@ namespace GameServer
 				{
 					if(packet.ReadBool())
 					{
-						Debug.Log(troopClass);
 						troopClass = troopClass | (TroopClass)(1 << amount);
-						Debug.Log(troopClass);
 					}
 					amount++;
 				}

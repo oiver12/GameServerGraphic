@@ -338,7 +338,6 @@ namespace Pathfinding {
 		/// this method will return target points so that the units move very little within the group, this is often aesthetically pleasing and reduces jitter if using
 		/// some kind of local avoidance.
 		///
-		/// TODO: Write unit tests
 		/// </summary>
 		/// <param name="center">The point to generate points around</param>
 		/// <param name="g">The graph to use for linecasting. If you are only using one graph, you can get this by AstarPath.active.graphs[0] as IRaycastableGraph.
