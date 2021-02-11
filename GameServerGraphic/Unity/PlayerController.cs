@@ -15,6 +15,15 @@ public enum STATE
 	HittingInFormation
 }
 
+public enum WalkMode
+{
+	Normal,
+	InAttackGrid,
+	InNewBoxAttackGrid,
+	BezierCurveWalk,
+	CircleWalk,
+}
+
 public enum SendState
 {
 	noSend,
@@ -28,19 +37,18 @@ public enum SendState
 [System.Serializable]
 public class PlayerController : MonoBehaviour
 {
+
 	public bool enabled = true;
-	public bool circleWalk;
-	public bool tempAttackGrid;
 	public bool commanderIsTurning;
 	public bool ignoreCommanderTurning;
 	public int clientId;
 	public int troopId;
 	public int formationId = -2;
-	public int indexOnAttackGrid = -1;
 	public float attackRange;
 	public float attackSpeed;
 	public float troopRadius;
 	public STATE currentState;
+	public WalkMode currentWalkMode = WalkMode.Normal;
 	public SendState currentSendState = SendState.noSend;
 	public Troops myTroop { get; private set; }
 	public FormationChild transformOnAttackGrid;
@@ -62,12 +70,12 @@ public class PlayerController : MonoBehaviour
 	//public RVOController RVOController;
 	public Seeker seeker;
 	public TroopComponents enemyTroop;
+	public static int playerIdNowStop = 0;
 
+	BezierCurveXZPlane bezierCurve;
 	bool waitAfterStart = false;
-	bool hasDone;
 	bool setOneTime;
 	float remainingTime;
-	float angleToDirection;
 	float lastTimeAttack = 0f;
 	object courutineHandle = null;
 	Vector3 pointToSendToClient;
@@ -79,6 +87,7 @@ public class PlayerController : MonoBehaviour
 	AttackingSystem attackingSystem;
 
 	[System.NonSerialized]
+	[System.Xml.Serialization.XmlIgnore]
 	public Client myClient;
 
 
@@ -90,8 +99,6 @@ public class PlayerController : MonoBehaviour
 		richAI = troopObject.richAI;
 		attackingSystem = troopObject.attackingSystem;
 		troopRadius = richAI.radius;
-		tempAttackGrid = false;
-		hasDone = false;
 		commanderIsTurning = false;
 		myClient = Server.clients[clientId];
 		attackRange += troopRadius;
@@ -143,7 +150,7 @@ public class PlayerController : MonoBehaviour
 					//currentState = STATE.Idle;
 					return;
 				}
-				if (richAI.reachedEndOfPath && !circleWalk)
+				if (richAI.reachedEndOfPath && currentWalkMode == WalkMode.Normal)
 				{
 					ReachedEndOfPath();
 					return;
@@ -181,20 +188,31 @@ public class PlayerController : MonoBehaviour
 				//}
 				//else
 				//{
-				if (circleWalk)
+				if (currentWalkMode == WalkMode.CircleWalk)
 				{
 					movementDirectionCircle = circleMiddlePoint - troopObject.transform.position;
 					movementDirectionCircle = new Vector3(movementDirectionCircle.z, 0, -movementDirectionCircle.x) * factorCircleSide;
 					movementDirectionCircle = movementDirectionCircle.normalized * richAI.maxSpeed;
-					//Debug.DrawRay(transform.position, movementDirectionCircle.normalized);
 					richAI.Move(movementDirectionCircle * Time.deltaTime);
 					richAI.FinalizeRotation(Quaternion.LookRotation(movementDirectionCircle, Vector3.up));
-					//Quaternion rotation = Quaternion.LookRotation(movementDirectionCircle, Vector3.up);
-					//transform.rotation = rotation;
 					CheckForSend(SendState.circleWalk);
 				}
+				if(currentWalkMode == WalkMode.BezierCurveWalk)
+				{
+					if (bezierCurve.tMove < 1f)
+					{
+						Vector3 moveDir = bezierCurve.Move(richAI.maxSpeed);
+						richAI.updateRotation = true;
+						richAI.Move(moveDir);
+						if(moveDir != Vector3.zero)
+							richAI.FinalizeRotation(Quaternion.LookRotation(moveDir, Vector3.up));
+						//Debug.Log(Quaternion.ToEulerAngles(Quaternion.LookRotation(moveDir, Vector3.up)));
+					}
+					else
+						ReachedEndOfPath();
+				}
 				//läuft in die AttackForm
-				if (tempAttackGrid)
+				if (currentWalkMode == WalkMode.InAttackGrid)
 				{
 					if ((troopObject.transform.position - zielPunkt).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance)
 					{
@@ -203,9 +221,16 @@ public class PlayerController : MonoBehaviour
 					}
 					if (transformOnAttackGrid == null)
 						return;
+					//troopObject.richAI.destination = Mycommander.transform. transformOnAttackGrid.transform.localPosition
 					CheckForSend(SendState.toAttackGrid);
 					richAI.Move(dirToWalkIn * richAI.maxSpeed * Time.deltaTime);
 
+				}
+				else if(currentWalkMode == WalkMode.InNewBoxAttackGrid && transformOnAttackGrid != null)
+				{
+					troopObject.richAI.destination = transformOnAttackGrid.transform.position;
+					//troopObject.richAI.Move((transformOnAttackGrid.transform.position - troopObject.transform.position).normalized * richAI.maxSpeed * Time.deltaTime);
+					CheckForSend(SendState.toAttackGrid);
 				}
 				//normales laufen
 				else
@@ -218,14 +243,14 @@ public class PlayerController : MonoBehaviour
 			else
 			{
 				//wenn sich die Troop bewegt ohne zu laufen(z.B. auf die Seite geschoben)
-				if (currentState != STATE.attackGrid && !circleWalk && waitAfterStart)
+				if (currentState != STATE.attackGrid && /*currentWalkMode != WalkMode.CircleWalk &&*/ waitAfterStart)
 				{
 					if ((troopObject.transform.position - lastPosition).sqrMagnitude > 5f)
 					{
 						CheckForSend(SendState.pushed);
 						lastPosition = troopObject.transform.position;
 					}
-					else if (!circleWalk && currentSendState != SendState.noSend)
+					else if (/*currentWalkMode != WalkMode.CircleWalk &&*/ currentSendState != SendState.noSend)
 						CheckForSend(SendState.noSend);
 				}
 			}
@@ -244,6 +269,8 @@ public class PlayerController : MonoBehaviour
 			}
 			else if (!setOneTime)
 			{
+				troopObject.commanderScript.formationObject.transform.rotation = troopObject.transform.rotation;
+				//troopObject.commanderScript.formationHasToStayInLine = true;
 				setOneTime = true;
 				troopObject.commanderScript.SetFormation();
 			}
@@ -252,41 +279,56 @@ public class PlayerController : MonoBehaviour
 
 	void AttackUpdate()
 	{
+		//if (troopId == playerIdNowStop)
+		//	Debug.Log("NOw");
 		if(attackingSystem.lineInFormation == 1)
 		{
 			// I.) Nicht weiter weg als .. von AttackGrid Position gehen, wenn Truppe angreifen
 			// II.) Nicht mehr als 3 Truppen pro gegnerische Truppe
 			// III.) Preferiere gegnerische Truppe mit weniger Truppen an sich
-			//if ((troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude < maxDistanceToAttackGrid * maxDistanceToAttackGrid)
-			//{
-				if (enemyTroop == null)
+			if ((troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude < maxDistanceToAttackGrid * maxDistanceToAttackGrid)
+			{
+				if (enemyTroop == null || enemyTroop.isDestroyed)
 				{
 					enemyTroop = troopObject.attackingSystem.FindClosest();
 					if (enemyTroop != null)
 					{
 						troopObject.richAI.destination = enemyTroop.transform.position;
-						troopObject.richAI.SearchPath();
 					}
+					else
+						troopObject.richAI.destination = transformOnAttackGrid.transform.position;
 				}
 				else
 				{
-					troopObject.richAI.destination = enemyTroop.transform.position;
 					if ((enemyTroop.transform.position - troopObject.transform.position).sqrMagnitude < attackRange * attackRange)
 					{
+						Mycommander.richAI.canMove = false;
+						richAI.destination = troopObject.transform.position;
 						if (Time.time - lastTimeAttack > attackSpeed)
 						{
 							myClient.player.enemyPlayer.ReduceTroopDamage(enemyTroop.playerController.troopId, troopId, myTroop.damage);
 						}
 					}
+					else
+					{
+						troopObject.richAI.destination = enemyTroop.transform.position;
+					}
 				}
 
-			//}
+			}
 		}
-		//else
-		//{
-		//	//zum AttackGridPunkt laufen, da man sich nicht in der ersten Reihe befindet
-		//	troopObject.richAI.destination = transformOnAttackGrid.transform.position;
-		//}
+		else
+		{
+			if (troopObject.commanderScript == null)
+			{
+				//zum AttackGridPunkt laufen, da man sich nicht in der ersten Reihe befindet
+				troopObject.richAI.destination = transformOnAttackGrid.transform.position;
+			}
+			else
+			{
+				troopObject.richAI.destination = enemyTroop.transform.position;
+			}
+		}
 	}
 
 	public void UpdateEnemyTroopPoisition()
@@ -392,11 +434,10 @@ public class PlayerController : MonoBehaviour
 		}
 		enabled = true;
 		richAI.enabled = true;
-		hasDone = false;
 		startingPoint = troopObject.transform.position;
 		if (currentState != STATE.attackGrid || troopObject.commanderScript != null || toAttackGrid)
 		{
-			if (Vector3.Angle(troopObject.transform.forward, position - troopObject.transform.position) > 16f && troopObject.commanderScript != null && troopObject.commanderScript.attackGrid)
+			if (Vector3.Angle(troopObject.transform.forward, position - troopObject.transform.position) > 16f && troopObject.commanderScript != null && troopObject.commanderScript.attackGrid && !ignoreCommanderTurning)
 			{
 				var enemy = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position);
 				if (enemy != null && Vector3.Distance(enemy.transform.position, troopObject.transform.position) < 4f)
@@ -422,18 +463,21 @@ public class PlayerController : MonoBehaviour
 						ServerSend.troopMove(true, clientId, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
 						ServerSend.troopMove(false, myClient.enemyClient.id, troopId, troopObject.transform.position, pointToSendToClient, richAI.maxSpeed, false);
 						troopObject.transform.parent = Mycommander.transform;
-						tempAttackGrid = false;
+						currentWalkMode = WalkMode.Normal;
 						currentState = STATE.attackGrid;
 						//CheckForSend(SendState.noSend);
 						richAI.enabled = false;
 						Mycommander.commanderScript.childhasReachedGridPoint(troopId, troopObject.transform.position, clientId);
 						return;
 					}
-					tempAttackGrid = true;
+					richAI.destination = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+					richAI.SetPath(null);
+					currentWalkMode = WalkMode.InAttackGrid;
 					currentState = STATE.Moving;
 					troopObject.transform.parent = Mycommander.transform.parent;
 					zielPunkt = position;
 					dirToWalkIn = (position - troopObject.transform.position).normalized;
+					//Form1.SpawnPointAt(position, System.Drawing.Color.Red, 10);
 				}
 				else
 				{
@@ -487,14 +531,35 @@ public class PlayerController : MonoBehaviour
 
 	private void ReachedEndOfPath()
 	{
+		if (troopObject.commanderScript != null && troopObject.commanderScript.controlledTroops.Count > 0 && troopObject.commanderScript.controlledTroops[0].playerController.currentWalkMode == WalkMode.InNewBoxAttackGrid)
+		{
+			ignoreCommanderTurning = false;
+			troopObject.commanderScript.SetFormation();
+			//MoveToPosition(troopObject.transform.position + troopObject.commanderScript.tempAttackGridDir, false);
+			CheckForSend(SendState.noSend);
+			//richAI.canMove = false;
+			//commanderIsTurning = true;
+			//troopObject.commanderScript.prepareForFormation();
+			//setOneTime = false;
+			//currentState = STATE.Moving;
+			//troopObject.richAI.steeringTarget = troopObject.transform.position + troopObject.commanderScript.tempAttackGridDir;
+			//troopObject.richAI.FinalizeRotation(Quaternion.LookRotation(troopObject.commanderScript.tempAttackGridDir, Vector3.up));
+			//Form1.SpawnPointAt(troopObject.transform.position + troopObject.transform.forward * 20f, System.Drawing.Color.AliceBlue, 10);
+			//for (int i = 0; i < troopObject.commanderScript.formationObject.formationObjects.Length; i++)
+			//{
+			//	Form1.SpawnPointAt(troopObject.commanderScript.formationObject.formationObjects[i].transform.position, System.Drawing.Color.Red, 15);
+			//}
+			//troopObject.commanderScript.SetFormation();
+			return;
+		}
 		/*if (tempAttackGrid && GetComponentInParent<CommanderScript>() == null)
 			return;*/
 		CheckForSend(SendState.noSend);
 		currentState = STATE.Idle;
 		richAI.canMove = true;
-		if (tempAttackGrid)
+		if (currentWalkMode == WalkMode.InAttackGrid)
 		{
-			tempAttackGrid = false;
+			currentWalkMode = WalkMode.Normal;
 			currentState = STATE.attackGrid;
 			CheckForSend(SendState.noSend);
 			troopObject.transform.parent = Mycommander.transform;
@@ -523,14 +588,15 @@ public class PlayerController : MonoBehaviour
 		}
 		ServerSend.hasReachedDestination(true, troopId, clientId, troopObject.transform.position, -1);
 		ServerSend.hasReachedDestination(false, troopId, myClient.enemyClient.id, troopObject.transform.position, -1);
-		troopObject.GetParentNormalComponents().groupMovement.ReachedDestination(troopObject);
+		if(troopObject.GetParentNormalComponents() != null)
+			troopObject.GetParentNormalComponents().groupMovement.ReachedDestination(troopObject);
 	}
 
 	public void ResumeCommanderWalk()
 	{
 		ServerSend.troopMove(true, clientId, troopId, troopObject.transform.position, richAI.steeringTarget, 3000f, false);
 		ServerSend.troopMove(false, myClient.enemyClient.id, troopId, troopObject.transform.position, richAI.steeringTarget, 3000f, false);
-		if (!circleWalk)
+		if (currentWalkMode != WalkMode.CircleWalk)
 		{
 			richAI.enabled = true;
 			richAI.canMove = true;
@@ -542,9 +608,20 @@ public class PlayerController : MonoBehaviour
 		{
 			commanderIsTurning = false;
 			currentState = STATE.Following;
-			circleWalk = true;
+			currentWalkMode = WalkMode.CircleWalk;
 			troopObject.commanderScript.hasToWalk = true;
 		}
+	}
+
+	public void StartHermitCurve(Vector3 secondPos, Vector3 secondDir)
+	{
+		Debug.Log(Vector3.Angle(secondPos - troopObject.transform.position, secondDir));
+		bezierCurve = new BezierCurveXZPlane();
+		bezierCurve.BezierCurveXZPlaneFromHermitCurve(troopObject.transform.position, troopObject.transform.forward, secondPos, secondDir);
+		bezierCurve.CalculateBezierCurve(true);
+		bezierCurve.StartMove();
+		currentState = STATE.Moving;
+		currentWalkMode = WalkMode.BezierCurveWalk;
 	}
 
 	void OnPathReadyNormal(Path p)
@@ -592,4 +669,6 @@ public class PlayerController : MonoBehaviour
 	//{
 	//	Destroy(gameObject);
 	//}
+
+	public PlayerController() { }
 }

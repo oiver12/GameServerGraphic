@@ -128,6 +128,7 @@ namespace GameServer
 		/// <param name="context">Object to which the message applies.</param>
 		public static void LogErrorFormat(string format, params object[] args)
 		{
+
 			//Debug.logger.LogFormat(LogType.Error, format, args);
 		}
 

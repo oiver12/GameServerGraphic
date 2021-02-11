@@ -16,6 +16,8 @@ namespace GameServer
 
 		public List<Transform> childs = new List<Transform>();
 
+		private Transform() { }
+
 		public Transform(Vector3 pos, Quaternion q, Transform par = null)
 		{
 			position = pos;
@@ -56,25 +58,9 @@ namespace GameServer
 				Vector3 translation = value - m_postion;
 				for (int i = 0; i < childs.Count; i++)
 				{
-					//childs[i].localPosition = childs[i].localPosition;
 					childs[i].position += translation;
 				}
-				//if(Form1.placedTroops >= 3f)
-				//{
-				//	if (troopObject != null && troopObject.commanderScript == null)
-				//	{
-				//		//Breakpoint
-				//		var asdas = Server.clients;
-				//		Debug.Log("OK");
-				//	}
-				//}
 				m_postion = value;
-				//if(parent != null)
-				//{
-				//	Matrix4x4 rtsMatrix = Matrix4x4.TRS(parent.position, parent.rotation, Vector3.one);
-				//	rtsMatrix = Matrix4x4.InvertMatrix(rtsMatrix);
-				//	//m_localPosition = rtsMatrix.MultiplyPoint(m_postion);
-				//}
 			}
 		}
 
@@ -90,17 +76,38 @@ namespace GameServer
 			{
 				if (float.IsNaN(value.w))
 					throw new System.Exception("Rot was NaN");
-				Quaternion oldrotation = m_rotation;
+
+				//eine rotations Matrix mit der Differenz der beiden Rotationen Analog zu (trans = Vector3 translation = value - m_postion; aus position)
+				if(troopObject != null && troopObject.commanderScript != null && (value * Quaternion.Inverse(m_rotation)).Length() < 0.9f)
+					Debug.Log("OK");
+				var moveMatrix = System.Numerics.Matrix4x4.CreateFromQuaternion((value * Quaternion.Inverse(m_rotation)).ToSytemNumericQuaternion());
 				m_rotation = value;
 				for (int i = 0; i < childs.Count; i++)
 				{
-					Matrix4x4 rtsMatrix = Matrix4x4.TRS(m_postion, oldrotation, Vector3.one);
-					rtsMatrix = Matrix4x4.InvertMatrix(rtsMatrix);
-					Vector3 oldlocalposition = rtsMatrix.MultiplyPoint(childs[i].position);
-					//Debug.Log(op);
-					childs[i].localPosition = oldlocalposition;
-					//Debug.Log(childs[i].localPosition);
+					//die Rotationsmatrix des Kindes
+					var childMatrix = System.Numerics.Matrix4x4.CreateFromQuaternion(childs[i].rotation.ToSytemNumericQuaternion());
+					//anwenden der Rotationsmatrix auf das Kind und dann schlussendlich in die Einzelteile zerlegen
+					childMatrix = childMatrix * moveMatrix;
+					System.Numerics.Matrix4x4.Decompose(childMatrix, out var scale, out var Localrotation, out var translation);
+					childs[i].rotation = (Quaternion)Localrotation;
+					//die Position ist: Rotationspunkt verschieben in den Ursprung, Rotieren, Punkt wieder zurück verschieben
+					childs[i].position = position + (Vector3)moveMatrix.MutliplyPoint((childs[i].m_postion - position).ToSytemNumericVector3());
+					//Debug.Log(Quaternion.ToEulerAngles((Quaternion)Localrotation) + "LOc");
+					//Debug.Log(position + (Vector3)moveMatrix.MutliplyPoint((childs[i].m_postion - position).ToSytemNumericVector3()));
 				}
+			}
+		}
+
+		public Vector3 eulerAngles
+		{
+			get
+			{
+				return Quaternion.ToEulerAngles(m_rotation);
+			}
+
+			set
+			{
+				rotation = Quaternion.Euler(value);
 			}
 		}
 
@@ -112,9 +119,10 @@ namespace GameServer
 			}
 			set
 			{
-				if(value == null)
+				if (value == null)
 				{
-					m_parent.childs.Remove(this);
+					if(m_parent != null)
+						m_parent.childs.Remove(this);
 					m_parent = null;
 					return;
 				}
@@ -177,12 +185,47 @@ namespace GameServer
 			}
 		}
 
+		//public Quaternion localRotation
+		//{
+		//	get
+		//	{
+		//		if (parent == null)
+		//		{
+		//			return m_rotation;
+		//		}
+		//		var testMatrix = System.Numerics.Matrix4x4.CreateTranslation(parent.position.ToSytemNumericVector3()) * System.Numerics.Matrix4x4.CreateFromQuaternion(parent.rotation.ToSytemNumericQuaternion()) * System.Numerics.Matrix4x4.CreateScale(1f);
+		//		System.Numerics.Matrix4x4.Invert(testMatrix, out var parentRtsMatrix);
+		//		var childMatrix = System.Numerics.Matrix4x4.CreateTranslation(position.ToSytemNumericVector3()) * System.Numerics.Matrix4x4.CreateFromQuaternion(rotation.ToSytemNumericQuaternion()) * System.Numerics.Matrix4x4.CreateScale(1f);
+		//		childMatrix = parentRtsMatrix * childMatrix;
+		//		System.Numerics.Matrix4x4.Decompose(childMatrix, out var scale, out var Localrotation, out var translation);
+		//		return (Quaternion)Localrotation;
+		//	}
+		//	set
+		//	{
+		//		var parentRTSMatrix = System.Numerics.Matrix4x4.CreateTranslation(parent.position.ToSytemNumericVector3()) * System.Numerics.Matrix4x4.CreateFromQuaternion(parent.rotation.ToSytemNumericQuaternion()) * System.Numerics.Matrix4x4.CreateScale(1f);
+		//		var childMatrix = System.Numerics.Matrix4x4.CreateTranslation(localPosition.ToSytemNumericVector3()) * System.Numerics.Matrix4x4.CreateFromQuaternion(value.ToSytemNumericQuaternion()) * System.Numerics.Matrix4x4.CreateScale(1f);
+		//		childMatrix = parentRTSMatrix * childMatrix;
+		//		System.Numerics.Matrix4x4.Decompose(childMatrix, out var scale, out var rotationMAtrix, out var translation);
+		//		m_rotation = (Quaternion)rotationMAtrix;
+		//	}
+		//}
+
 		public void Translate(Vector3 translation, Space relativTo)
 		{
 			if (relativTo == Space.World)
 				position += translation;
 			else
 				localPosition += translation;
+		}
+
+		//public Vector3 TransformPoint(Vector3 point)
+		//{
+		//	return Vector3.zero;
+		//}
+
+		public void MoveWithoutChilds(Vector3 newPosition)
+		{
+			m_postion = newPosition;
 		}
 	}
 }

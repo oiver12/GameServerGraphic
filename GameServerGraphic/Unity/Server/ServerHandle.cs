@@ -11,6 +11,7 @@ class ServerHandle
 		int _clientIdCheck = _packet.ReadInt();
 		string _username = _packet.ReadString();
 		string _password = _packet.ReadString();
+		bool isClone = _packet.ReadBool();
 
 		Debug.Log($"{Server.clients[_fromClient].tcp.socket.Client.RemoteEndPoint} connected successfully and is now player {_fromClient}.");
 		if (_fromClient != _clientIdCheck)
@@ -32,6 +33,7 @@ class ServerHandle
 		Debug.Log("Player " + _username + " succefully logged into his account");
 		ServerSend.succesfullyLogedIn(_fromClient, true);
 		Server.clients[_fromClient].SendIntoGame(_username);
+		Server.clients[_fromClient].player.isClone = isClone;
 
 	}
 	public static void Register(int _fromClient, Packet _packet)
@@ -170,9 +172,20 @@ class ServerHandle
 		string condition = _packet.ReadString();
 		string stackTrace = _packet.ReadString();
 		if (!isException)
-			Debug.LogErrorFormat("User with id {0} had the ErrorMessage \n {1} {2}", _fromClient, condition, stackTrace);
+			Debug.LogError("User with id " + _fromClient + "had the ErrorMessage \n" + condition + stackTrace);
 		else
-			Debug.LogErrorFormat("User with id {0} had the Excpetion \n {1} {2}", _fromClient, condition, stackTrace);
+			Debug.LogError("User with id " + _fromClient + "had the Excpetion \n" + condition + stackTrace);
 	}
+
+	public static void MoveToNewGrid(int _fromClient, Packet _packet)
+	{
+		int width = _packet.ReadInt();
+		int length = _packet.ReadInt();
+		int commanderId = _packet.ReadInt();
+		Vector3 startPoint = _packet.ReadVector3();
+		Vector3 widthDir = _packet.ReadVector3();
+		Server.clients[_fromClient].player.placedTroops[commanderId].gameObject.commanderScript.MakeAttackGrid(width, length, startPoint, widthDir);
+	}
+
 }
 

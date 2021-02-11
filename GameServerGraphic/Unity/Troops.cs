@@ -71,6 +71,8 @@ public class Troops
 		this.attackRadius = attackRadius;
 		this.maxTroops = maxTroops;
 	}
+
+	private Troops() { }
 }
 
 public static class EnumExtension

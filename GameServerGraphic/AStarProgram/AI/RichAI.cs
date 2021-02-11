@@ -10,6 +10,7 @@ namespace Pathfinding {
 	/// <summary>Advanced AI for navmesh based graphs.</summary>
 	[System.Serializable]
 	public partial class RichAI : AIBase, IAstarAI {
+
 		/// <summary>
 		/// Max acceleration of the agent.
 		/// In world units per second per second.
@@ -184,7 +185,8 @@ namespace Pathfinding {
 		bool IAstarAI.canSearch { get { return canSearch; } set { canSearch = value; } }
 
 		/// <summary>\copydoc Pathfinding::IAstarAI::canMove</summary>
-		bool IAstarAI.canMove { get { return canMove; } set { canMove = value; } }
+		bool IAstarAI.canMove { get { return canMove; }
+			set { canMove = value; } }
 
 		/// <summary>
 		/// True if approaching the last waypoint in the current part of the path.
@@ -351,6 +353,8 @@ namespace Pathfinding {
 		protected override void MovementUpdateInternal (float deltaTime, out Vector3 nextPosition, out Quaternion nextRotation) {
 			if (updatePosition) simulatedPosition = tr.position;
 			if (updateRotation) simulatedRotation = tr.rotation;
+			if (richPath == null)
+				richPath = new RichPath();
 			RichPathPart currentPart = richPath.GetCurrentPart();
 
 			//if (currentPart is RichSpecial)

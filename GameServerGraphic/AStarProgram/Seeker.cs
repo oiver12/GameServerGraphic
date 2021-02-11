@@ -41,6 +41,7 @@ namespace Pathfinding
 		/// </summary>
 		public bool detailedGizmos;
 
+		[System.Xml.Serialization.XmlIgnore]
 		/// <summary>Path modifier which tweaks the start and end points of a path</summary>
 		public StartEndModifier startEndModifier = new StartEndModifier();
 
@@ -106,12 +107,15 @@ namespace Pathfinding
 		/// Movement scripts should register to this delegate.\n
 		/// A temporary callback can also be set when calling StartPath, but that delegate will only be called for that path
 		/// </summary>
+		[System.Xml.Serialization.XmlIgnore]
 		public OnPathDelegate pathCallback;
 
 		/// <summary>Called before pathfinding is started</summary>
+		[System.Xml.Serialization.XmlIgnore]
 		public OnPathDelegate preProcessPath;
 
 		/// <summary>Called after a path has been calculated, right before modifiers are executed.</summary>
+		[System.Xml.Serialization.XmlIgnore]
 		public OnPathDelegate postProcessPath;
 
 		/// <summary>Used for drawing gizmos</summary>

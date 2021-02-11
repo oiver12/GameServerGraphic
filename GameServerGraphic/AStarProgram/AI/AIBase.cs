@@ -167,6 +167,7 @@ namespace Pathfinding {
 		/// This is used to convert between world space and a movement plane to make it possible to use this script in
 		/// both 2D games and 3D games.
 		/// </summary>
+		[System.Xml.Serialization.XmlIgnore]
 		public IMovementPlane movementPlane = GraphTransform.identityTransform;
 
 		/// <summary>
@@ -245,6 +246,7 @@ namespace Pathfinding {
 		public bool isStopped { get; set; }
 
 		/// <summary>\copydoc Pathfinding::IAstarAI::onSearchPath</summary>
+		[System.Xml.Serialization.XmlIgnore]
 		public System.Action onSearchPath { get; set; }
 
 		/// <summary>True if the path should be automatically recalculated as soon as possible</summary>

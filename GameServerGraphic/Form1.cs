@@ -11,11 +11,15 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.Reflection;
+using Newtonsoft.Json;
+using System.Xml.Serialization;
+using System.Drawing.Drawing2D;
 
 namespace GameServerGraphic
 {
 	public partial class Form1 : Form
 	{
+		public static Form1 instance;
 		public static Image troopImagePrefab;
 		public static Timing instanceTiming;
 		static AstarPath astarpath;
@@ -25,6 +29,7 @@ namespace GameServerGraphic
 		public static List<Tuple<Transform, PictureBox>> troopsImages = new List<Tuple<Transform, PictureBox>>();
 		public static List<Tuple<Vector3, PictureBox>> otherPoints = new List<Tuple<Vector3, PictureBox>>();
 		public static int placedTroops = 0;
+		public static bool isPaused = false;
 		const float minX = 70;
 		const float maxX = 494;
 		const float minZ = -239;
@@ -39,6 +44,11 @@ namespace GameServerGraphic
 		float walkSpeedGraphics = 500f;
 		float zoomSpeedGraphics = 0.75f;
 		static RichTextBox textBoxStatic;
+		static Vector3 firstPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+		static Vector3 secondPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+		static Vector3 thirdPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+		static Vector3 fourthPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+		static BezierCurveXZPlane bezier;
 
 		float randomFloat(Random rand)
 		{
@@ -47,6 +57,7 @@ namespace GameServerGraphic
 
 		public Form1()
 		{
+			instance = this;
 			InitializeComponent();
 			xLenght = Mathf.Abs(maxX) - minX;
 			zLength = Mathf.Abs(maxZ) - minZ;
@@ -62,6 +73,7 @@ namespace GameServerGraphic
 			this.KeyPreview = true;
 			this.KeyPress += new KeyPressEventHandler(Form1_KeyPress);
 			this.MouseWheel += new System.Windows.Forms.MouseEventHandler(Form1_MouseWheel);
+			this.FormClosing += Form1_FormClosing;
 			mapPicture.MouseDown += new System.Windows.Forms.MouseEventHandler(panel1_MouseDown);
 			myControls = Controls;
 			myGraphics = this.CreateGraphics();
@@ -112,6 +124,11 @@ namespace GameServerGraphic
 			isRunning = true;
 			Thread mainThread = new Thread(new ThreadStart(MainThread));
 			mainThread.Start();
+			button3.ImageList = new ImageList();
+			button3.ImageList.Images.Add(Image.FromFile(@"..\..\Pause_Icon.jpg"));
+			button3.ImageList.Images.Add(Image.FromFile(@"..\..\Play_Icon.png"));
+			button3.ImageList.ImageSize = new Size(40, 40);
+			button3.ImageIndex = 0;
 			//MainThread();
 			Server.Start(50, 8000);
 		}
@@ -127,11 +144,20 @@ namespace GameServerGraphic
 			{
 				while (_nextLoop < DateTime.Now)
 				{
+					if (isPaused)
+					{
+						Thread.Sleep((int)Constants.MS_PER_TICK);
+						continue;
+					}
 					//troopTest.richAI.Update();
 					// If the time for the next loop is in the past, aka it's time to execute another tick
 					GameLogic.Update(); // Execute game logic
 					astarpath.Update();
 					_nextLoop = _nextLoop.AddMilliseconds(Constants.MS_PER_TICK); // Calculate at what point in time the next tick should be executed
+					//if (troopsImages.Count > 0)
+					//{
+					//	troopsImages[0].Item1.position += bezier.Move(20f);
+					//}
 					Time.time += Constants.MS_PER_TICK;
 					Time.frameCount++;
 					if (_nextLoop > DateTime.Now)
@@ -169,16 +195,18 @@ namespace GameServerGraphic
 		{
 			for (int i = 0; i < troopsImages.Count; i++)
 			{
-				Vector3 troopPos = troopsImages[i].Item1.position;
-				//troopPos = ConvertToLocal(new Vector2(troopPos.x, troopPos.z));
-				//Debug.Log(ConvertToLocal(troopPos));
-				float relativx = (troopPos.x - minX) / xLenght;
-				float relativz = (troopPos.z - minZ) / zLength;
-				relativx = Mathf.Clamp01(relativx);
-				relativz = Mathf.Clamp01(relativz);
-				Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
-				test = TranslateToNewMap(test);
-				troopsImages[i].Item2.Location = new Point((int)test.x, (int)test.y);
+				//	Vector3 troopPos = troopsImages[i].Item1.position;
+				//	//troopPos = ConvertToLocal(new Vector2(troopPos.x, troopPos.z));
+				//	//Debug.Log(ConvertToLocal(troopPos));
+				//	float relativx = (troopPos.x - minX) / xLenght;
+				//	float relativz = (troopPos.z - minZ) / zLength;
+				//	relativx = Mathf.Clamp01(relativx);
+				//	relativz = Mathf.Clamp01(relativz);
+				//	Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
+				//	test = TranslateToNewMap(test);
+				//troopsImages[i].Item2.Image = RotateImage(troopsImages[i].Item2.Image, -200f);
+				Point test = GetInCam(troopsImages[i].Item1.position);
+				troopsImages[i].Item2.Location = new Point((int)test.X, (int)test.Y);
 				troopsImages[i].Item2.BringToFront();
 			}
 			for (int i = 0; i < otherPoints.Count; i++)
@@ -186,17 +214,48 @@ namespace GameServerGraphic
 				Vector3 troopPos = otherPoints[i].Item1;
 				//troopPos = ConvertToLocal(new Vector2(troopPos.x, troopPos.z));
 				//Debug.Log(ConvertToLocal(troopPos));
-				float relativx = (troopPos.x - minX) / xLenght;
-				float relativz = (troopPos.z - minZ) / zLength;
-				relativx = Mathf.Clamp01(relativx);
-				relativz = Mathf.Clamp01(relativz);
-				Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
-				test = TranslateToNewMap(test);
-				otherPoints[i].Item2.Location = new Point((int)test.x, (int)test.y);
+				//float relativx = (troopPos.x - minX) / xLenght;
+				//float relativz = (troopPos.z - minZ) / zLength;
+				//relativx = Mathf.Clamp01(relativx);
+				//relativz = Mathf.Clamp01(relativz);
+				//Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
+				//test = TranslateToNewMap(test);
+				Point test = GetInCam(troopPos);
+				otherPoints[i].Item2.Location = new Point((int)test.X, (int)test.Y);
 				otherPoints[i].Item2.BringToFront();
 			}
 			//Debug.Log(myControls[1].Location);
 			UIThreadManager.UpdateMain();
+		}
+
+		public static Image RotateImage(Image img, float rotationAngle)
+		{
+			//create an empty Bitmap image
+			Bitmap bmp = new Bitmap(img.Width, img.Height);
+
+			//turn the Bitmap into a Graphics object
+			Graphics gfx = Graphics.FromImage(bmp);
+
+			//now we set the rotation point to the center of our image
+			gfx.TranslateTransform((float)bmp.Width / 2, (float)bmp.Height / 2);
+
+			//now rotate the image
+			gfx.RotateTransform(rotationAngle);
+
+			gfx.TranslateTransform(-(float)bmp.Width / 2, -(float)bmp.Height / 2);
+
+			//set the InterpolationMode to HighQualityBicubic so to ensure a high
+			//quality image once it is transformed to the specified size
+			gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+			//now draw our new image onto the graphics object
+			gfx.DrawImage(img, new Point(0, 0));
+
+			//dispose of our Graphics object
+			gfx.Dispose();
+
+			//return the image
+			return bmp;
 		}
 
 		static Point GetInCam(Vector3 worldPos)
@@ -290,21 +349,49 @@ namespace GameServerGraphic
 			{
 				offsetFromCenter.y += walkSpeedGraphics * Time.deltaTime;
 				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+				e.Handled = true;
 			}
 			if (e.KeyChar == 's')
 			{
 				offsetFromCenter.y -= walkSpeedGraphics * Time.deltaTime;
 				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+				e.Handled = true;
 			}
 			if (e.KeyChar == 'a')
 			{
 				offsetFromCenter.x += walkSpeedGraphics * Time.deltaTime;
 				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+				e.Handled = true;
 			}
 			if (e.KeyChar == 'd')
 			{
 				offsetFromCenter.x -= walkSpeedGraphics * Time.deltaTime;
 				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+				e.Handled = true;
+			}
+
+			if(e.KeyChar == 'g')
+			{
+				firstPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+				secondPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+				thirdPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+				fourthPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+				UIThreadManager.ExecuteOnMainThread(() =>
+				{
+					for (int i = 0; i < otherPoints.Count; i++)
+					{
+						myControls.Remove(otherPoints[i].Item2);
+					}
+					otherPoints.Clear();
+				}
+				);
+				e.Handled = true;
+			}
+			//escape Taste
+			if(e.KeyChar == 27)
+			{
+				isRunning = false;
+				this.Close();
 			}
 		}
 
@@ -314,6 +401,11 @@ namespace GameServerGraphic
 			mapScale += numberOfTextLinesToMove * zoomSpeedGraphics * Time.deltaTime;
 			mapPicture.Size = new Size((int)(mapSizeX * mapScale), (int)(mapSizeY * mapScale));
 			mapPicture.Location = new Point((int)(mapSizeX / 2 - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)(mapSizeY / 2 - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+		}
+
+		private void Form1_FormClosing(Object sender, FormClosingEventArgs e)
+		{
+			isRunning = false;
 		}
 
 		public static void AddToFormConsol(string text, bool error = false)
@@ -343,19 +435,105 @@ namespace GameServerGraphic
 				if (troopsImages[i].Item2 == sender)
 				{
 					TroopComponents thisTroops = troopsImages[i].Item1.troopObject;
+					PlayerController.playerIdNowStop = i;
+					isPaused = true;
+					//string output = thisTroops.SerializeObject();
 					Debug.Log(thisTroops.transform.name);
+					isPaused = false;
+					return;
 				}
 			}
+			//HermitCurveTest();
+		}
+
+		static void HermitCurveTest()
+		{
+			if (float.IsNaN(firstPosition.x))
+			{
+				Point relativPoint = instance.PointToClient(new Point(MousePosition.X, MousePosition.Y));
+				firstPosition = AstarPath.active.GetNearest(CamToWorldSpace(new Vector2(relativPoint.X, relativPoint.Y)), NNConstraint.Default).position;
+				SpawnPointAt(firstPosition, Color.Red, 10);
+			}
+			else if (float.IsNaN(secondPosition.x))
+			{
+				Point relativPoint = instance.PointToClient(new Point(MousePosition.X, MousePosition.Y));
+				secondPosition = AstarPath.active.GetNearest(CamToWorldSpace(new Vector2(relativPoint.X, relativPoint.Y)), NNConstraint.Default).position;
+				SpawnPointAt(secondPosition, Color.Red, 10);
+			}
+			else if (float.IsNaN(thirdPosition.x))
+			{
+				Point relativPoint = instance.PointToClient(new Point(MousePosition.X, MousePosition.Y));
+				thirdPosition = AstarPath.active.GetNearest(CamToWorldSpace(new Vector2(relativPoint.X, relativPoint.Y)), NNConstraint.Default).position;
+				SpawnPointAt(thirdPosition, Color.Red, 10);
+			}
+			else if (float.IsNaN(fourthPosition.x))
+			{
+				Point relativPoint = instance.PointToClient(new Point(MousePosition.X, MousePosition.Y));
+				fourthPosition = AstarPath.active.GetNearest(CamToWorldSpace(new Vector2(relativPoint.X, relativPoint.Y)), NNConstraint.Default).position;
+				SpawnPointAt(fourthPosition, Color.Red, 10);
+				float radius;
+				Vector3 firstDir = (secondPosition - firstPosition);
+				Vector3 secondDir = (thirdPosition - fourthPosition);
+				//firstDir = Quaternion.Euler(0f, 180f, 0f) * secondDir;
+				var stopWatch = new System.Diagnostics.Stopwatch();
+				stopWatch.Start();
+				//ExtensionMethods.SearchHermiteCurve(firstPosition, firstDir.normalized, thirdPosition, secondDir.normalized, out float radiusFirstDir, out float radiusSecondDir, out float distance);
+				bezier = new BezierCurveXZPlane();
+				bezier.BezierCurveXZPlaneFromHermitCurve(firstPosition, firstDir, thirdPosition, secondDir);
+				bezier.CalculateBezierCurve(true);
+				//Player.SearchBezierCurve(firstPosition, (secondPosition - firstPosition).normalized, thirdPosition, (thirdPosition - fourthPosition).normalized);
+				//Player.DrawNewBezierCruve(new Vector2(firstPosition.x, firstPosition.z), new Vector2(firstDir.x, firstDir.z), new Vector2(thirdPosition.x, thirdPosition.z), new Vector2(secondDir.x, secondDir.z));
+				//Vector3 middlePoint;
+				//Vector3 pointBeforeFormation;
+				//float radius;
+				//float factorCircleSide;
+				//Player.SearchCircle(firstPosition, secondPosition, dir.normalized, out middlePoint, out radius, out factorCircleSide, out pointBeforeFormation);
+				stopWatch.Stop();
+				Debug.Log("Time: " + stopWatch.ElapsedMilliseconds);
+				//stopWatch.Reset();
+				//stopWatch.Start();
+				//for (int i = 0; i < 10000; i++)
+				//{
+				//	Vector3 test = bezier.Move(1);
+				//}
+				//stopWatch.Stop();
+				//Debug.Log("Time: " + stopWatch.Elapsed);
+			}
+			else
+			{
+				AddTroop(new Transform(bezier.firstPosition, Quaternion.Identity));
+				//Point relativPoint = instance.PointToClient(new Point(MousePosition.X, MousePosition.Y));
+				//Vector3 searchPoint = AstarPath.active.GetNearest(CamToWorldSpace(new Vector2(relativPoint.X, relativPoint.Y)), NNConstraint.Default).position;
+				//float t = bezier.NewtonApproximation(0.5f, new Vector2(searchPoint.x, searchPoint.z), 1000);
+				////Debug.Log(bezier.B(0.567f));
+				//Debug.Log(searchPoint);
+				//Debug.Log(bezier.B(t));
+				//Debug.Log(t);
+				//Vector2 testPoint = bezier.B(t);
+				//SpawnPointAt(new Vector3(testPoint.x, searchPoint.y, testPoint.y), Color.Blue, 20);
+			}
+		}
+
+		static Vector3 CamToWorldSpace(Vector2 camPos)
+		{
+			Matrix4x4 rtsMatrix = Matrix4x4.TRS(new Vector2(mapPicture.Location.X, mapPicture.Location.Y), Quaternion.Identity, new Vector3(mapScale, mapScale, mapScale));
+			Vector3 test = Matrix4x4.InvertMatrix(rtsMatrix).MultiplyPoint(camPos);
+			//Vector2 test = camPos;
+			float x = (mapSizeX- test.x) / mapSizeX;
+			float z = (test.y) / mapSizeY;
+			Vector2 asdas = new Vector2((mapSizeX - (mapSizeX * x)), (mapSizeY * z));
+			Vector3 worldPos = new Vector3((x * xLenght) + minX, -67, (z * zLength) + minZ);
+			return worldPos;
 		}
 
 		/// <summary>
 		/// Serialize von clientId placebelTroops und placedTroops und vom enemyClient
 		/// </summary>
 		/// <param name="clientId"></param>
-		static void SerializeGame(int clientId, bool isEnemyClient)
+		static void SerializeGame(int clientId)
 		{
 			FileStream fs;
-			if (!isEnemyClient)
+			if (!Server.clients[clientId].player.isClone)
 				fs = new FileStream("TestSerialize.dat", FileMode.Create);
 			else
 				fs = new FileStream("TestSerializeEnemy.dat", FileMode.Create);
@@ -366,7 +544,8 @@ namespace GameServerGraphic
 			Packet _packet = new Packet();
 			try
 			{
-				_packet.Write(clientId);
+				//_packet.Write(Server.clients[clientId].player.isClone);
+				//_packet.Write(clientId);
 				formatter.Serialize(placebelTroops, Server.clients[clientId].player.placebelTroops);
 				_packet.Write(placebelTroops.ToArray().Length);
 				_packet.Write(placebelTroops.ToArray());
@@ -391,13 +570,13 @@ namespace GameServerGraphic
 			}
 		}
 
-		static void deserializeGame(bool isEnemyClient)
+		static void deserializeGame(int clientId)
 		{
 			try
 			{
 				BinaryFormatter formatter = new BinaryFormatter();
 				byte[] deserializeData;
-				if (!isEnemyClient)
+				if (!Server.clients[clientId].player.isClone)
 				{
 					using (var stream = new FileStream("TestSerialize.dat", FileMode.Open))
 					{
@@ -414,7 +593,7 @@ namespace GameServerGraphic
 					}
 				}
 				Packet _packet = new Packet(deserializeData);
-				int clientId = _packet.ReadInt();
+				//int clientId = _packet.ReadInt();
 				int placebelTroopsLength = _packet.ReadInt();
 				using (var ms = new MemoryStream(_packet.ReadBytes(placebelTroopsLength)))
 				{
@@ -459,8 +638,8 @@ namespace GameServerGraphic
 					Debug.Log("Nicht hier");
 					continue;
 				}
-				SerializeGame(i, false);
-				SerializeGame(Server.clients[i].enemyClient.id, true);
+				SerializeGame(i);
+				SerializeGame(Server.clients[i].enemyClient.id);
 				break;
 			}
 		}
@@ -479,10 +658,19 @@ namespace GameServerGraphic
 					continue;
 				}
 				Debug.Log("Hier");
-				deserializeGame(false);
-				deserializeGame(true);
+				deserializeGame(i);
+				deserializeGame(Server.clients[i].enemyClient.id);
 				break;
 			}
+		}
+
+		private void button3_Click(object sender, EventArgs e)
+		{
+			isPaused = !isPaused;
+			if (isPaused)
+				button3.ImageIndex = 1;
+			else
+				button3.ImageIndex = 0;
 		}
 #endif
 

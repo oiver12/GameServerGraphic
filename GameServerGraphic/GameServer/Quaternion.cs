@@ -813,7 +813,18 @@ namespace GameServer
 
 		public static Quaternion Euler(Vector3 v)
 		{
-			return Euler(v.y, v.x, v.z);
+			return CreateFromYawPitchRoll(Mathf.Deg2Rad * v.y, Mathf.Deg2Rad * v.x, Mathf.Deg2Rad * v.z); 
+			//return Euler(v.z, v.y, v.x);
+		}
+
+		public static Quaternion Euler(float x, float y, float z)
+		{
+			return CreateFromYawPitchRoll(Mathf.Deg2Rad * y, Mathf.Deg2Rad * x, Mathf.Deg2Rad * z);
+		}
+
+		public static Quaternion CreateFromYawPitchRollGrad(float yaw, float pitch, float roll)
+		{
+			return CreateFromYawPitchRoll(Mathf.Deg2Rad * yaw, Mathf.Deg2Rad * pitch, Mathf.Deg2Rad * roll);
 		}
 
 		//public static Quaternion Euler(float yaw, float pitch, float roll)
@@ -839,52 +850,57 @@ namespace GameServer
 		//	return result;
 		//}
 
-		public static Quaternion Euler(double yaw, double pitch, double roll) // yaw (Z), pitch (Y), roll (X)
+		//public static Quaternion Euler(double yaw, double pitch, double roll) // yaw (Z), pitch (Y), roll (X)
+		//{
+		//	yaw *= Mathf.Deg2Rad;
+		//	pitch *= Mathf.Deg2Rad;
+		//	roll *= Mathf.Deg2Rad;
+		//	// Abbreviations for the various angular functions
+		//	double cy = Math.Cos(yaw * 0.5);
+		//	double sy = Math.Sin(yaw * 0.5);
+		//	double cp = Math.Cos(pitch * 0.5);
+		//	double sp = Math.Sin(pitch * 0.5);
+		//	double cr = Math.Cos(roll * 0.5);
+		//	double sr = Math.Sin(roll * 0.5);
+
+		//	Quaternion q;
+		//	q.w = (float)(cr * cp * cy + sr * sp * sy);
+		//	q.x = (float)(sr * cp * cy - cr * sp * sy);
+		//	q.y = (float)(cr * sp * cy + sr * cp * sy);
+		//	q.z = (float)(cr * cp * sy - sr * sp * cy);
+
+		//	return q;
+		//}
+
+		public static Vector3 ToEulerAngles(Quaternion q1)
 		{
-			yaw *= Mathf.Deg2Rad;
-			pitch *= Mathf.Deg2Rad;
-			roll *= Mathf.Deg2Rad;
-			// Abbreviations for the various angular functions
-			double cy = Math.Cos(yaw * 0.5);
-			double sy = Math.Sin(yaw * 0.5);
-			double cp = Math.Cos(pitch * 0.5);
-			double sp = Math.Sin(pitch * 0.5);
-			double cr = Math.Cos(roll * 0.5);
-			double sr = Math.Sin(roll * 0.5);
+			float sqw = q1.w * q1.w;
+			float sqx = q1.x * q1.x;
+			float sqy = q1.y * q1.y;
+			float sqz = q1.z * q1.z;
+			float unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+			float test = q1.x * q1.w - q1.y * q1.z;
+			Vector3 v;
 
-			Quaternion q;
-			q.w = (float)(cr * cp * cy + sr * sp * sy);
-			q.x = (float)(sr * cp * cy - cr * sp * sy);
-			q.y = (float)(cr * sp * cy + sr * cp * sy);
-			q.z = (float)(cr * cp * sy - sr * sp * cy);
-
-			return q;
-		}
-
-		public static Vector3 ToEulerAngles(Quaternion q)
-		{
-			Vector3 angles;
-
-			// roll (x-axis rotation)
-			double sinr_cosp = 2 * (q.w * q.x + q.y * q.z);
-			double cosr_cosp = 1 - 2 * (q.x * q.x + q.y * q.y);
-			angles.x = (float)Math.Atan2(sinr_cosp, cosr_cosp);
-
-			// pitch (y-axis rotation)
-			double sinp = 2 * (q.w * q.y - q.z * q.x);
-			if (Math.Abs(sinp) >= 1)
-				angles.y = (float)Mathf.copysign(Math.PI / 2, sinp); // use 90 degrees if out of range
-			else
-				angles.y = (float)Math.Asin(sinp);
-
-			// yaw (z-axis rotation)
-			double siny_cosp = 2 * (q.w * q.z + q.x * q.y);
-			double cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
-			angles.z = (float)Math.Atan2(siny_cosp, cosy_cosp);
-			angles.x *= Mathf.Rad2Deg;
-			angles.y *= Mathf.Rad2Deg;
-			angles.z *= Mathf.Rad2Deg;
-			return angles;
+			if (test > 0.4995f * unit)
+			{ // singularity at north pole
+				v.y = 2f * Mathf.Atan2(q1.y, q1.x);
+				v.x = Mathf.PI / 2;
+				v.z = 0;
+				return NormalizeAngles(v * Mathf.Rad2Deg);
+			}
+			if (test < -0.4995f * unit)
+			{ // singularity at south pole
+				v.y = -2f * Mathf.Atan2(q1.y, q1.x);
+				v.x = -Mathf.PI / 2;
+				v.z = 0;
+				return NormalizeAngles(v * Mathf.Rad2Deg);
+			}
+			Quaternion q = new Quaternion(q1.w, q1.z, q1.x, q1.y);
+			v.y = (float)Math.Atan2(2f * q.x * q.w + 2f * q.y * q.z, 1 - 2f * (q.z * q.z + q.w * q.w));     // Yaw
+			v.x = (float)Math.Asin(2f * (q.x * q.z - q.w * q.y));                             // Pitch
+			v.z = (float)Math.Atan2(2f * q.x * q.y + 2f * q.z * q.w, 1 - 2f * (q.y * q.y + q.z * q.z));      // Roll
+			return NormalizeAngles(v * Mathf.Rad2Deg);
 		}
 
 		static Vector3 NormalizeAngles(Vector3 angles)
@@ -905,7 +921,7 @@ namespace GameServer
 		}
 
 		/// <summary>
-		/// Evaluates a rotation needed to be applied to an object positioned at sourcePoint to face destPoint
+		/// Evaluates a rotation needed to be applied to an obect positioned at sourcePoint to face destPoint
 		/// </summary>
 		/// <param name="sourcePoint">Coordinates of source point</param>
 		/// <param name="destPoint">Coordinates of destionation point</param>
@@ -952,6 +968,8 @@ namespace GameServer
 			return (float)(Mathf.Rad2Deg *  2 * Math.Acos(Quaternion.Dot(from, to)));
 		}
 
+
+
 		/// <summary>
 		///   <para>Rotates a rotation from towards to.</para>
 		/// </summary>
@@ -966,6 +984,13 @@ namespace GameServer
 			float t = Mathf.Min(1f, maxDegreesDelta / num);
 			Quaternion q = Quaternion.Slerp(from, to, t);
 			return q;
+		}
+
+		public static explicit operator Quaternion(System.Numerics.Quaternion qu) => new Quaternion(qu.X, qu.Y, qu.Z, qu.W);
+
+		public System.Numerics.Quaternion ToSytemNumericQuaternion()
+		{
+			return new System.Numerics.Quaternion(x, y, z, w);
 		}
 	}
 }

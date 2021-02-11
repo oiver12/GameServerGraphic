@@ -83,7 +83,7 @@ namespace GameServer
 				form.angles = new float[lengthAngles];
 				for (int y = 0; y < lengthAngles; y++)
 				{
-					form.angles[y] = packet.ReadFloat();
+					form.angles[y] = Mathf.Deg2Rad * packet.ReadFloat();
 				}
 				//form.lineFormationObject = deserializeGameObject(packet);
 				lineFormations = deserializeGameObject(packet);

@@ -73,7 +73,7 @@ public class ArcherCommander : CommanderScript
 			if (sqrdistance < (richAI.endReachedDistance + 0.1f) * (richAI.endReachedDistance + 0.1f))
 			{
 				hasToCheckDistance = false;
-				playerController.circleWalk = false;
+				playerController.currentWalkMode = WalkMode.Normal;
 				hasToWalk = false;
 				SetAttackInForm(attackingSystem.enemyAttackPlayer, true);
 			}

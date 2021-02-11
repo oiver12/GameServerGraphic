@@ -17,7 +17,7 @@ public static class FormationManager
 	//	instance = this;
 	//}
 
-	public static float SetFormation(int id, List<TroopComponents> troops, TroopComponents commander, int clientId, bool hasToStayInLine)
+	public static float SetFormation(int id, List<TroopComponents> troops, TroopComponents commander, int clientId, bool hasToStayInLine, bool toNewAttackGrid = false)
 	{
 		float distance = 0f;
 		commander.richAI.radius = 0.5f;
@@ -36,26 +36,30 @@ public static class FormationManager
 			commander.playerController.formationId = id;
 			commander.commanderScript.childReachedPositionCount = 0;
 
-			if(!hasToStayInLine)
-				distance = MakeFormation(formation, troops, commander, id);
-			else
+			if (hasToStayInLine)
 				distance = MakeFormationStayInLine(formation, troops, commander, id);
+			else if (toNewAttackGrid)
+				distance = MakeFormationToNewAttackGrid(formation, troops, commander, id);
+			else
+				distance = MakeFormation(formation, troops, commander, id);
 			commander.commanderScript.formationObject = formation;
 			commander.commanderScript.attackGrid = true;
 		}
 		else
 		{
 			//die gleiche Formation noch mal setzten --> FormationObject kann bleiben
-			if (commander.commanderScript.formationObject.transform.name.Contains(id.ToString()))
+			if (commander.commanderScript.formationObject.transform.name.Contains(id.ToString()) || toNewAttackGrid)
 			{
 				FormationObject formation = commander.commanderScript.formationObject;
 				commander.commanderScript.childReachedPositionCount = 0;
 				formation.transform.rotation = commander.transform.rotation;
 
-				if (!hasToStayInLine)
-					distance = MakeFormation(formation, troops, commander, id);
-				else
+				if (hasToStayInLine)
 					distance = MakeFormationStayInLine(formation, troops, commander, id);
+				else if (toNewAttackGrid)
+					distance = MakeFormationToNewAttackGrid(formation, troops, commander, id);
+				else
+					distance = MakeFormation(formation, troops, commander, id);
 			}
 			//neue Formation, also neue Formation setzten
 			else
@@ -70,10 +74,10 @@ public static class FormationManager
 				commander.playerController.formationId = id;
 				commander.commanderScript.childReachedPositionCount = 0;
 
-				if (!hasToStayInLine)
-					distance = MakeFormation(formation, troops, commander, id);
-				else
+				if (hasToStayInLine)
 					distance = MakeFormationStayInLine(formation, troops, commander, id);
+				else
+					distance = MakeFormation(formation, troops, commander, id);
 
 				commander.commanderScript.formationObject = formation;
 				commander.commanderScript.attackGrid = true;
@@ -85,6 +89,8 @@ public static class FormationManager
 		return distance;
 	}
 
+
+	//TODO refacture this is schmutz
 	private static float MakeFormation(FormationObject formation, List<TroopComponents> troops, TroopComponents commander, int id)
 	{
 		float distance = 0f;
@@ -95,7 +101,7 @@ public static class FormationManager
 			if (tempDistance > distance)
 				distance = tempDistance;
 			//allChildren.Add(formation.transform.GetChild(i).position);
-			//bekommen von allen children in die Listee, jedoch auch noch allee equivalenten Punkte bekommen.
+			//bekommen von allen children in die Liste, jedoch auch noch alle equivalenten Punkte bekommen.
 			allChildren.Add(formation.formationObjects[i]);
 			if (i == troops.Count)
 			{
@@ -116,17 +122,17 @@ public static class FormationManager
 		allChildren.RemoveAt(0);
 		allChildren.UpdatePositions();
 		int lines = GetLinesCount(id, troops.Count);
-		commander.attackingSystem.lineInFormation = lines;
+		commander.attackingSystem.lineInFormation = GetLine(formation.formationObjects[0], lines);
 		for (int i = 0; i < troops.Count; i++)
 		{
 			troops[i].transform.parent = commander.transform;
 			PlayerController playerControllerTroop = troops[i].playerController;
 			playerControllerTroop.Mycommander = commander;
-			playerControllerTroop.tempAttackGrid = true;
+			playerControllerTroop.currentWalkMode = WalkMode.InAttackGrid;
 			playerControllerTroop.formationId = id;
 			//playerControllerTroop.richAI.endReachedDistance = 0.2f;
 			Transform nearestObject = allChildren.FindClosest(troops[i].transform.position).transform;
-			playerControllerTroop.MoveToPosition(nearestObject.position, true);
+			//GameServerGraphic.Form1.SpawnPointAt(nearestObject.position, System.Drawing.Color.Blue, 10);
 			int index = allChildren.ToList().FindIndex(a => a.transform == nearestObject);
 			//bekommen von Zahl, auf welchem  die Truppe steht
 			int line = GetLine(allChildren[index], lines);
@@ -135,8 +141,47 @@ public static class FormationManager
 			//playerControllerTroop.indexOnAttackGrid = nearestObject.GetSiblingIndex();
 			allChildren.RemoveAt(index);
 			allChildren.UpdatePositions();
+			playerControllerTroop.MoveToPosition(nearestObject.position, true);
 		}
 		return Mathf.Sqrt(distance);
+	}
+
+	public static float MakeFormationToNewAttackGrid(FormationObject formation, List<TroopComponents> troops, TroopComponents commander, int id)
+	{
+		float distance = 0f;
+		KdTree<FormationChild> allChildren = new KdTree<FormationChild>();
+		for (int i = 1; i < formation.formationObjects.Length; i++)
+		{
+			float tempDistance = (formation.formationObjects[0].transform.position - formation.formationObjects[i].transform.position).sqrMagnitude;
+			if (tempDistance > distance)
+				distance = tempDistance;
+
+			allChildren.Add(formation.formationObjects[i]);
+		}
+		allChildren.UpdatePositions();
+		int lines = GetLinesCount(id, troops.Count);
+		commander.attackingSystem.lineInFormation = GetLine(formation.formationObjects[0], lines);
+		for (int i = 0; i < troops.Count; i++)
+		{
+			troops[i].transform.parent = commander.transform;
+			PlayerController playerControllerTroop = troops[i].playerController;
+			playerControllerTroop.Mycommander = commander;
+			playerControllerTroop.currentWalkMode = WalkMode.InNewBoxAttackGrid;	
+			playerControllerTroop.formationId = id;
+			playerControllerTroop.currentState = STATE.Moving;
+			troops[i].richAI.enabled = true;
+			troops[i].richAI.canMove = true;
+			Transform nearestObject = allChildren.FindClosest(troops[i].transform.position).transform;
+			//GameServerGraphic.Form1.SpawnPointAt(nearestObject.position, System.Drawing.Color.Blue, 10);
+			int index = allChildren.ToList().FindIndex(a => a.transform == nearestObject);
+			int line = GetLine(allChildren[index], lines);
+			playerControllerTroop.transformOnAttackGrid = allChildren[index];
+			allChildren.RemoveAt(index);
+			allChildren.UpdatePositions();
+		}
+		commander.playerController.ignoreCommanderTurning = true;
+		//commander.playerController.MoveToPosition(formation.formationObjects[0].transform.position, false);
+		return distance;
 	}
 
 	private static float MakeFormationStayInLine(FormationObject formation, List<TroopComponents> troops, TroopComponents commander, int id)
@@ -162,13 +207,13 @@ public static class FormationManager
 			troops[i].transform.parent = commander.transform;
 			PlayerController playerControllerTroop = troops[i].playerController;
 			playerControllerTroop.Mycommander = commander;
-			playerControllerTroop.tempAttackGrid = true;
+			playerControllerTroop.currentWalkMode = WalkMode.InAttackGrid;
 			playerControllerTroop.formationId = id;
 			//playerControllerTroop.richAI.endReachedDistance = 0.2f;
-			FormationChild nearestObject = formation.formationObjects[playerControllerTroop.indexOnAttackGrid];
-			playerControllerTroop.MoveToPosition(nearestObject.transform.position, true);
+			FormationChild nearestObject = playerControllerTroop.transformOnAttackGrid;
 			//bekommen von Zahl, auf welchem  die Truppe steht
 			playerControllerTroop.transformOnAttackGrid = nearestObject;
+			playerControllerTroop.MoveToPosition(nearestObject.transform.position, true);
 		}
 		return Mathf.Sqrt(distance);
 	}

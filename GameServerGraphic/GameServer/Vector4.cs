@@ -406,5 +406,10 @@ namespace GameServer
 		{
 			return new Vector4(Mathf.Max(lhs.x, rhs.x), Mathf.Max(lhs.y, rhs.y), Mathf.Max(lhs.z, rhs.z), Mathf.Max(lhs.w, rhs.w));
 		}
+
+		public override string ToString()
+		{
+			return string.Format("x: {0}, y: {1}, z: {2}, w: {3}", x, y, z,w);
+		}
 	}
 }

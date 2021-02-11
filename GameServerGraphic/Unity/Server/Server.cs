@@ -144,6 +144,7 @@ class Server
 			{ (int)ClientPackets.setAttack, ServerHandle.setAttack },
 			{ (int)ClientPackets.PlaceArmy, ServerHandle.PlaceArmy },
 			{ (int)ClientPackets.Exception, ServerHandle.ExceptionFromClient },
+			{ (int)ClientPackets.moveToNewGrid, ServerHandle.MoveToNewGrid}
 		};
 		Debug.Log("Initialized packets.");
 	}

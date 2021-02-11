@@ -124,7 +124,7 @@ public class ArcherAttack : AttackingSystem
 				parent.troopObject.richAI.radius = 1.5f;
 				hasToNotDO = true;
 				//GetComponent<PlayerController>().RVOController.priority = 0.1f;
-				troopObject.playerController.tempAttackGrid = false;
+				troopObject.playerController.currentWalkMode = WalkMode.Normal;
 				playerController.currentState = STATE.Following;
 				//playerController.richAI.endReachedDistance = playerController.myTroop.attackRadius;
 				playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);

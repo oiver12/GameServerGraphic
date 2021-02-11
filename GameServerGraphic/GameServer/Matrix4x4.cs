@@ -2024,52 +2024,63 @@ namespace GameServer
 			double sqy = q.y * q.y;
 			double sqz = q.z * q.z;
 			result.M11 = (float)(1 - 2 * sqy - 2 * sqz) * (float)s.x;
-			result.M12 = (float)(2 * q.x * q.y - 2 * q.z * q.w);
-			result.M13 = (float)(2 * q.x * q.z + 2 * q.y * q.w);
-			result.M21 = (float)(2 * q.x * q.y + 2 * q.z * q.w);
+			result.M21 = (float)(2 * q.x * q.y - 2 * q.z * q.w);
+			result.M31 = (float)(2 * q.x * q.z + 2 * q.y * q.w);
+			result.M12 = (float)(2 * q.x * q.y + 2 * q.z * q.w);
 			result.M22 = (float)(1 - 2 * sqx - 2 * sqz) * (float)s.y;
-			result.M23 = (float)(2 * q.y * q.z - 2 * q.x * q.w);
-			result.M31 = (float)(2 * q.x * q.z - 2 * q.y * q.w);
-			result.M32 = (float)(2 * q.y * q.z + 2 * q.x * q.w);
+			result.M32 = (float)(2 * q.y * q.z - 2 * q.x * q.w);
+			result.M13 = (float)(2 * q.x * q.z - 2 * q.y * q.w);
+			result.M23 = (float)(2 * q.y * q.z + 2 * q.x * q.w);
 			result.M33 = (float)(1 - 2 * sqx - 2 * sqy) * (float)s.z;
 			// Translation
-			result.M14 = (float)pos.x;
-			result.M24 = (float)pos.y;
-			result.M34 = (float)pos.z;
+			result.M41 = (float)pos.x;
+			result.M42 = (float)pos.y;
+			result.M43 = (float)pos.z;
 			result.M44 = 1.0f;
 			// Return result
 			return result;
 		}
 
+
 		public Vector3 MultiplyPoint3x4(Vector3 v)
 		{
 			Vector3 vector3;
-			vector3.x = (M11 * v.x + M12 * v.y + M13 * v.z) + M14;
-			vector3.y = (M21 * v.x + M22 * v.y + M23 * v.z) + M24;
-			vector3.z = (M31 * v.x + M32 * v.y + M33 * v.z) + M34;
+			vector3.x = (M11 * v.x + M21 * v.y + M31 * v.z) + M41;
+			vector3.y = (M12 * v.x + M22 * v.y + M32 * v.z) + M42;
+			vector3.z = (M13 * v.x + M23 * v.y + M33 * v.z) + M43;
 			return vector3;
 		}
 
 		public Vector3 MultiplyVector(Vector3 v)
 		{
 			Vector3 vector3;
-			vector3.x = (float)((double)this.M11 * (double)v.x + (double)this.M12 * (double)v.y + (double)this.M13 * (double)v.z);
-			vector3.y = (float)((double)this.M21 * (double)v.x + (double)this.M22 * (double)v.y + (double)this.M23 * (double)v.z);
-			vector3.z = (float)((double)this.M31 * (double)v.x + (double)this.M32 * (double)v.y + (double)this.M33 * (double)v.z);
+			vector3.x = (float)((double)this.M11 * (double)v.x + (double)this.M21 * (double)v.y + (double)this.M31 * (double)v.z);
+			vector3.y = (float)((double)this.M12 * (double)v.x + (double)this.M22 * (double)v.y + (double)this.M32 * (double)v.z);
+			vector3.z = (float)((double)this.M13 * (double)v.x + (double)this.M23 * (double)v.y + (double)this.M33 * (double)v.z);
 			return vector3;
 		}
 
 		public Vector3 MultiplyPoint(Vector3 v)
 		{
 			Vector3 vector3;
-			vector3.x = (float)((double)this.M11 * (double)v.x + (double)this.M12 * (double)v.y + (double)this.M13 * (double)v.z) + this.M14;
-			vector3.y = (float)((double)this.M21 * (double)v.x + (double)this.M22 * (double)v.y + (double)this.M23 * (double)v.z) + this.M24;
-			vector3.z = (float)((double)this.M31 * (double)v.x + (double)this.M32 * (double)v.y + (double)this.M33 * (double)v.z) + this.M34;
-			float num = 1f / ((float)((double)this.M41 * (double)v.x + (double)this.M42 * (double)v.y + (double)this.M43 * (double)v.z) + this.M44);
+			vector3.x = (float)((double)this.M11 * (double)v.x + (double)this.M21 * (double)v.y + (double)this.M31 * (double)v.z) + this.M41;
+			vector3.y = (float)((double)this.M12 * (double)v.x + (double)this.M22 * (double)v.y + (double)this.M32 * (double)v.z) + this.M42;
+			vector3.z = (float)((double)this.M13 * (double)v.x + (double)this.M23 * (double)v.y + (double)this.M33 * (double)v.z) + this.M43;
+			float num = 1f / ((float)((double)this.M14 * (double)v.x + (double)this.M24 * (double)v.y + (double)this.M34 * (double)v.z) + this.M44);
 			vector3.x *= num;
 			vector3.y *= num;
 			vector3.z *= num;
 			return vector3;
+		}
+
+		public Vector4 MultiplyPointVector4(Vector4 v)
+		{
+			Vector4 vector4;
+			vector4.x = (float)((double)this.M11 * (double)v.x + (double)this.M21 * (double)v.y + (double)this.M31 * (double)v.z + (double)this.M41 * (double)v.w);
+			vector4.y = (float)((double)this.M12 * (double)v.x + (double)this.M22 * (double)v.y + (double)this.M32 * (double)v.z + (double)this.M42 * (double)v.w);
+			vector4.z = (float)((double)this.M13 * (double)v.x + (double)this.M23 * (double)v.y + (double)this.M33 * (double)v.z + (double)this.M43 * (double)v.w);
+			vector4.w = (float)((double)this.M14 * (double)v.x + (double)this.M24 * (double)v.y + (double)this.M34 * (double)v.z + (double)this.M44 * (double)v.w);
+			return vector4;
 		}
 
 		/// <summary>
@@ -2198,6 +2209,12 @@ namespace GameServer
 			//	}
 			//}
 		}
+
+		public System.Numerics.Matrix4x4 toSystemNumericsMatrix()
+		{
+			return new System.Numerics.Matrix4x4(M11, M12, M13, M14, M21, M22, M23, M24, M31, M32, M33, M34, M41, M42, M43, M44);
+		}
+
 
 	}
 }

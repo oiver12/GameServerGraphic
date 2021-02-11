@@ -42,6 +42,7 @@ public class Player
 	public List<PlacedTroopStruct> placedTroops = new List<PlacedTroopStruct>();
 	public int id;
 	public Player enemyPlayer;
+	public bool isClone;
 
 	KdTree<TroopComponents> troopsKDTree = new KdTree<TroopComponents>();
 	//List<Transform> allGroups;
@@ -163,7 +164,7 @@ public class Player
 			//Timing.RunCoroutine(waitForLastTroopSet(commanderId));
 			troopObject.transform.parent = commander.troopObject.transform;
 			playerControllerTroop.Mycommander = commander.troopObject;
-			playerControllerTroop.tempAttackGrid = true;
+			playerControllerTroop.currentWalkMode = WalkMode.InAttackGrid;
 			playerControllerTroop.formationId = commander.formationId;
 			playerControllerTroop.transformOnAttackGrid = transformOnAttackGrid;
 			playerControllerTroop.currentState = STATE.attackGrid;
@@ -196,7 +197,7 @@ public class Player
 			PlayerController playerControllerTroop = placedTroops[placedTroops.Count - 1].gameObject.playerController;
 			playerControllerTroop.troopObject.transform.parent = commanderObject.transform;
 			playerControllerTroop.Mycommander = commanderObject;
-			playerControllerTroop.tempAttackGrid = true;
+			playerControllerTroop.currentWalkMode = WalkMode.InAttackGrid;
 			playerControllerTroop.formationId = commanderObject.commanderScript.formationId;
 			playerControllerTroop.transformOnAttackGrid = transformOnAttackGrid;
 			playerControllerTroop.currentState = STATE.attackGrid;
@@ -266,7 +267,7 @@ public class Player
 			placedTroops[troopId].gameObject.richAI.enabled = true;
 			//wenn man nicht in Formation steht muss die stopping Distanz grösser werden
 			//placedTroops[troopId].gameObject.GetComponent<PlayerController>().richAI.endReachedDistance = 2f;
-			placedTroops[troopId].gameObject.playerController.tempAttackGrid = false;
+			placedTroops[troopId].gameObject.playerController.currentWalkMode = WalkMode.Normal;
 			Debug.Log("Set Comman Child");
 			placedTroops[troopId].gameObject.playerController.currentState = STATE.Idle;
 			if (placedTroops[commanderId].gameObject.commanderScript.controlledTroops.Contains(placedTroops[troopId].gameObject))
@@ -337,27 +338,7 @@ public class Player
 			ServerSend.troopDamage(id, troopId, enemyTroopId, damage, false, true);
 			ServerSend.troopDamage(enemyPlayer.id, enemyTroopId, troopId, damage, true, true);
 			//deparent all troops to not destroy them
-			if(ownTroop.gameObject.commanderScript != null)
-			{
-				CommanderScript commander = ownTroop.gameObject.commanderScript;
-				for (int i= 0; i< commander.controlledTroops.Count; i++)
-				{
-					commander.controlledTroops[i].transform.parent = commander.troopObject.transform.parent;
-					Debug.Log("Reduce");
-					commander.controlledTroops[i].playerController.currentState = STATE.Idle;
-				}
-			}
-			if (ownTroop.gameObject.commanderScript != null)
-			{
-				ownTroop.gameObject.commanderScript.controlledTroops.Remove(ownTroop.gameObject);
-			}
-			Form1.RemoveTroop(placedTroops[troopId].gameObject.transform);
-			placedTroops[troopId].gameObject = null;
-			//ownTroop.gameObject.playerController.DestroyObject();
-			placedTroops.RemoveAt(troopId);
-			UpdateTroopId();
-			troopsKDTree.RemoveAt(troopId);
-			troopsKDTree.UpdatePositions();
+			DestroyTroop(ownTroop);
 		}
 
 	}
@@ -390,31 +371,38 @@ public class Player
 			//Troop is dead
 			if(ownTroop.health <= 0f)
 			{
-				//deparent all troops to not destroy them
-				if (ownTroop.gameObject.commanderScript != null)
-				{
-					TroopComponents commander = ownTroop.gameObject;
-					for (int y = 0; y < commander.commanderScript.controlledTroops.Count; y++)
-					{
-						commander.commanderScript.controlledTroops[y].transform.parent = commander.transform.parent;
-						Debug.Log("Reduce Troop");
-						commander.commanderScript.controlledTroops[y].playerController.currentState = STATE.Idle;
-					}
-				}
-				if (ownTroop.gameObject.GetParentTroopComponents() != null)
-				{
-					ownTroop.gameObject.GetParentTroopComponents().commanderScript.controlledTroops.Remove(ownTroop.gameObject);
-				}
-				//ownTroop.gameObject.playerController.DestroyObject();
-				Form1.RemoveTroop(placedTroops[troopIds[i]].gameObject.transform);
-				placedTroops[troopIds[i]].gameObject = null;
-				placedTroops.RemoveAt(troopIds[i]);
-				UpdateTroopId();
-				troopsKDTree.RemoveAt(troopIds[i]);
-				troopsKDTree.UpdatePositions();
+				DestroyTroop(ownTroop);
 			}
 		}
 		ServerSend.troopDamageToGroup(enemyPlayer.id, troopIds, enemyTroopId, damage);
+	}
+
+	public void DestroyTroop(PlacedTroopStruct ownTroop)
+	{
+		//deparent all troops to not destroy them
+		if (ownTroop.gameObject.commanderScript != null)
+		{
+			CommanderScript commander = ownTroop.gameObject.commanderScript;
+			for (int y = 0; y < commander.controlledTroops.Count; y++)
+			{
+				commander.controlledTroops[y].transform.parent = commander.troopObject.transform.parent;
+				Debug.Log("Reduce Troop");
+				commander.controlledTroops[y].playerController.currentState = STATE.Idle;
+				commander.controlledTroops[y].playerController.Mycommander = null;
+				commander.controlledTroops[y].playerController.transformOnAttackGrid = null;
+			}
+		}
+		if (ownTroop.gameObject.GetParentTroopComponents() != null)
+		{
+			ownTroop.gameObject.GetParentTroopComponents().commanderScript.controlledTroops.Remove(ownTroop.gameObject);
+		}
+		int index = ownTroop.gameObject.playerController.troopId;
+		placedTroops.RemoveAt(index);
+		ownTroop.gameObject.DestroyObject();
+		Form1.RemoveTroop(ownTroop.gameObject.transform);
+		UpdateTroopId();
+		troopsKDTree.RemoveAt(index);
+		troopsKDTree.UpdatePositions();
 	}
 
 	public void UpdateTroopId()
@@ -455,4 +443,6 @@ public class Player
 		placebelTroops.Clear();
 		troopsKDTree.Clear();
 	}
+
+
 }

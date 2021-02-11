@@ -584,5 +584,12 @@ namespace GameServer
 		{
 			return string.Format("x: {0}, y: {1}, z: {2}", x, y, z);
 		}
+
+		public static explicit operator Vector3(System.Numerics.Vector3 vector) => new Vector3(vector.X, vector.Y, vector.Z);
+
+		public System.Numerics.Vector3 ToSytemNumericVector3()
+		{
+			return new System.Numerics.Vector3(x, y, z);
+		}
 	}
 }

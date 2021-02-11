@@ -8,6 +8,8 @@ namespace GameServer
 		//public Transform transform;
 		public GroupMovement groupMovement;
 
+		private NormalComponentsObject() { }
+
 		public NormalComponentsObject(Transform trans, GroupMovement group = null)
 		{
 			transform = trans;

@@ -16,7 +16,6 @@ public enum AttackStyle
 [System.Serializable]
 public class CommanderScript : MonoBehaviour
 {
-
 	public bool attackGrid;
 	public bool formationHasToStayInLine;
 	public bool hasToWalk = false;
@@ -24,6 +23,7 @@ public class CommanderScript : MonoBehaviour
 	public int childReachedPositionCount;
 	public float formationRadius;
 	public float minAttackRange = 0f;
+	public Vector3 tempAttackGridDir;
 	public AttackStyle attackStyleAtMoment = 0;
 	public FormationObject formationObject;
 	//public NormalComponentsObject circleRenderer;
@@ -89,12 +89,12 @@ public class CommanderScript : MonoBehaviour
 		return ~0;
 	}
 
-	public void SetFormation()
+	public void SetFormation(bool toNewAttackGrid = false)
 	{
 		/*if (playerController.currentState == STATE.Following)
 			StopAttack();*/
 
-		float radius = FormationManager.SetFormation(formationId, controlledTroops, troopObject, playerController.clientId, formationHasToStayInLine);
+		float radius = FormationManager.SetFormation(formationId, controlledTroops, troopObject, playerController.clientId, formationHasToStayInLine, toNewAttackGrid);
 		SetAgentRadius(radius);
 	}
 
@@ -115,7 +115,7 @@ public class CommanderScript : MonoBehaviour
 		foreach (TroopComponents troop in controlledTroops)
 		{
 			troop.transform.parent = troopObject.transform.parent;
-			troop.playerController.transformOnAttackGrid = null;
+			//troop.playerController.transformOnAttackGrid = null;
 		}
 	}
 
@@ -233,14 +233,14 @@ public class CommanderScript : MonoBehaviour
 			if (Vector3.Angle(troopObject.transform.forward, movement) > 16f)
 			{
 				hasToWalk = false;
-				playerController.circleWalk = false;
+				playerController.currentWalkMode = WalkMode.Normal;
 				playerController.StartTruning(movement.normalized);
 			}
 			else
 			{
 				playerController.currentState = STATE.Following;
 				hasToWalk = true;
-				playerController.circleWalk = true;
+				playerController.currentWalkMode = WalkMode.CircleWalk;
 			}
 			//richAI.endReachedDistance = 0.9f;
 			Timing.RunCoroutine(CheckForDistanceCoroutine());
@@ -355,7 +355,7 @@ public class CommanderScript : MonoBehaviour
 		playerController.ignoreCommanderTurning = false;
 		attackingSystem.StopRepeat();
 		//playerController.RVOController.priority = 0.5f;
-		playerController.circleWalk = false;
+		playerController.currentWalkMode = WalkMode.Normal;
 		hasToWalk = false;
 		hasToCheckDistance = false;
 		ServerSend.StartFight(playerController.clientId, playerController.troopId, false, true);
@@ -389,7 +389,7 @@ public class CommanderScript : MonoBehaviour
 	protected virtual IEnumerator<float> CheckForDistanceCoroutine()
 	{
 		hasToCheckDistance = true;
-		float smallestDistance = float.PositiveInfinity;
+		//float smallestDistance = float.PositiveInfinity;
 		while (hasToCheckDistance)
 		{
 			//if ((troopObject.transform.position - positonToWalkTo).magnitude < smallestDistance)
@@ -401,7 +401,7 @@ public class CommanderScript : MonoBehaviour
 			{
 				Debug.Log("Ckeck for Distance finished");
 				hasToCheckDistance = false;
-				playerController.circleWalk = false;
+				playerController.currentWalkMode = WalkMode.Normal;
 				hasToWalk = false;
 				SetAttackInForm(attackingSystem.enemyAttackPlayer, true);
 			}
@@ -437,7 +437,6 @@ public class CommanderScript : MonoBehaviour
 		//}
 		//CancelInvoke();
 		//}
-		Debug.Log("oJ");
 		attackingLines = new List<TroopComponents>[20];
 		int maxLine = 0;
 		for (int i = 0; i < controlledTroops.Count; i++)
@@ -462,6 +461,59 @@ public class CommanderScript : MonoBehaviour
 		Array.Resize(ref attackingLines, maxLine);
 		richAI.onSearchPath += playerController.UpdateEnemyTroopPoisition;
 		playerController.isAttacking = true;
+		playerController.enemyTroop = attackingSystem.enemyAttackPlayer;
+	}
+
+	public void MakeAttackGrid(int width, int length, Vector3 startPoint, Vector3 widthDir)
+	{
+		float deltaX = 5f;
+		Vector3 lineLength = (Quaternion.Euler(0f, 90f, 0f) * widthDir).normalized;
+		int amountUnits = controlledTroops.Count + 1;
+		formationObject.formationObjects = new FormationChild[amountUnits];
+		int commanderPlace = (length / 2 * width) + width / 2;
+		tempAttackGridDir = lineLength;
+		formationObject.transform.rotation = Quaternion.LookRotation(lineLength, Vector3.up);
+		formationObject.transform.name = formationId.ToString();
+		//formationObject.transform.rotation = Quaternion.LookRotation(lineLength, Vector3.up);
+		//relative to Commander and move whole thing with commander
+		for (int i = 0; i < length; i++)
+		{
+			Vector3 pointOnColumns = startPoint + lineLength * deltaX * i;
+			int offset = 0;
+			if (i == length - 1)
+			{
+				offset = (int)(width / 2f) - (int)((amountUnits - i * width) / 2f);
+			}
+			for (int y = 0; y < width; y++)
+			{
+				Vector3 pointOnRow = pointOnColumns + widthDir * deltaX * (y + offset);
+				int index = (i * width) + y;
+				if (index < commanderPlace)
+					index += 1;
+				else if (index == commanderPlace)
+				{
+					index = 0;
+					formationObject.transform.MoveWithoutChilds(pointOnRow);
+				}
+
+				if (index >= amountUnits)
+					break;
+
+				formationObject.formationObjects[index] = new FormationChild(new Transform(pointOnRow, Quaternion.Identity, formationObject.transform), i, null, null);
+			}
+		}
+		SetFormation(true);
+		attackGrid = true;
+		Vector3 commanderToPos = formationObject.formationObjects[0].transform.position;
+		formationObject.transform.localPosition = Vector3.zero;
+		formationObject.transform.rotation = troopObject.transform.rotation;
+		formationObject.transform.parent = troopObject.transform;
+		Form1.SpawnPointAt(formationObject.transform.position, Color.Blue, 10);
+		Form1.SpawnPointAt(formationObject.transform.position + formationObject.transform.forward * 10f, Color.AliceBlue, 10);
+		troopObject.playerController.StartHermitCurve(commanderToPos, lineLength);
+		//float radius;
+		//Vector3 pointBeforeFormation;
+		//Player.SearchCircle(troopObject.transform.position, commanderToPos, lineLength, out troopObject.playerController.circleMiddlePoint, out radius, out troopObject.playerController.factorCircleSide, out pointBeforeFormation);
 	}
 
 	/// <summary>
@@ -545,4 +597,6 @@ public class CommanderScript : MonoBehaviour
 	//{
 
 	//}
+
+	public CommanderScript() { }
 }

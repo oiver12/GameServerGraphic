@@ -15,6 +15,8 @@ public class AttackingSystem : MonoBehaviour
 	public AttackStyle myAttackStyle;
 	public TroopComponents enemyAttackPlayer;
 	public TroopComponents troopObject;
+	[System.NonSerialized]
+	[System.Xml.Serialization.XmlIgnore]
 	public Client myClient;
 
 	public const int attackSearchRange = 25;
@@ -26,9 +28,9 @@ public class AttackingSystem : MonoBehaviour
 	protected float searchSpeed = 0.1f;
 	protected PlayerController playerController;
 	protected object coroutineHandle = null;
-	
+
 	public override void Start(TroopComponents _troopObject)
-    {
+	{
 		troopObject = _troopObject;
 		playerController = troopObject.playerController;
 		myClient = Server.clients[playerController.clientId];
@@ -39,7 +41,7 @@ public class AttackingSystem : MonoBehaviour
 	}
 
 	public virtual void Update()
-    {
+	{
 		if (playerController.currentState != STATE.Following && playerController.currentState != STATE.Hitting && playerController.currentState != STATE.HittingInFormation)
 			return;
 
@@ -62,7 +64,7 @@ public class AttackingSystem : MonoBehaviour
 				}
 			}
 		}*/
-		if (playerController.currentState == STATE.Hitting || playerController.currentState ==STATE.HittingInFormation)
+		if (playerController.currentState == STATE.Hitting || playerController.currentState == STATE.HittingInFormation)
 		{
 			try
 			{
@@ -81,7 +83,7 @@ public class AttackingSystem : MonoBehaviour
 				}
 				if (playerController.currentState == STATE.Hitting)
 				{
-					if(coroutineHandle == null)
+					if (coroutineHandle == null)
 						Timing.RunCoroutine(AttackNormalWithoutAttackGrid());
 				}
 				else //HittingInFormation
@@ -90,7 +92,7 @@ public class AttackingSystem : MonoBehaviour
 					//	coroutineHandle = Timing.RunCoroutine(AttackInFormation());
 				}
 			}
-			catch(NullReferenceException)
+			catch (NullReferenceException)
 			{
 				return;
 			}
@@ -166,7 +168,7 @@ public class AttackingSystem : MonoBehaviour
 			//{
 			//	CommanderWalkFormation();
 			//}
-			catch(NullReferenceException)
+			catch (NullReferenceException)
 			{
 				CommanderWalkFormation();
 			}
@@ -252,13 +254,13 @@ public class AttackingSystem : MonoBehaviour
 			Timing.KillCoroutines((CoroutineHandle)coroutineHandle);
 			coroutineHandle = null;
 		}
-		if(myClient == null)
+		if (myClient == null)
 			myClient = Server.clients[playerController.clientId];
 
 		if (myClient.enemyClient.player.placedTroops.Count > 0)
 		{
 			TroopComponents commander = playerController.Mycommander;
-			if(commander.playerController.circleWalk)
+			if (commander.playerController.currentWalkMode == WalkMode.CircleWalk)
 			{
 				return;
 			}
@@ -328,7 +330,7 @@ public class AttackingSystem : MonoBehaviour
 	{
 		if (troopObject.commanderScript == null)
 			enemyAttackPlayer = null;
-		while(hasToSearch)
+		while (hasToSearch)
 		{
 			if (!(enemyAttackPlayer != null && playerController.currentState == STATE.HittingInFormation))
 				SearchForEnemyPlayer();
@@ -349,7 +351,7 @@ public class AttackingSystem : MonoBehaviour
 			{
 				if (!comm.attackTroops.Contains(troopObject.transform))
 					comm.attackTroops.Add(troopObject.transform);
-				if(playerController.currentState == STATE.Following)
+				if (playerController.currentState == STATE.Following)
 					ServerSend.hasReachedDestination(true, playerController.troopId, myClient.id, troopObject.transform.position, playerController.troopId);
 				playerController.currentState = STATE.HittingInFormation;
 			}
@@ -379,15 +381,15 @@ public class AttackingSystem : MonoBehaviour
 		{
 			//if (lineInFormation == 0)
 			//{
-				if ((troopObject.transform.position - enemyClosest.transform.position).sqrMagnitude < (attackSearchRange* attackSearchRange))
-				{
-					if (!comm.attackTroops.Contains(troopObject.transform))
-						comm.attackTroops.Add(troopObject.transform);
+			if ((troopObject.transform.position - enemyClosest.transform.position).sqrMagnitude < (attackSearchRange * attackSearchRange))
+			{
+				if (!comm.attackTroops.Contains(troopObject.transform))
+					comm.attackTroops.Add(troopObject.transform);
 
-					AttackNormalTroop(enemyClosest);
-				}
-				else
-					comm.attackTroops.Remove(troopObject.transform);
+				AttackNormalTroop(enemyClosest);
+			}
+			else
+				comm.attackTroops.Remove(troopObject.transform);
 			//}
 			//else
 			//{
@@ -455,19 +457,49 @@ public class AttackingSystem : MonoBehaviour
 
 	public TroopComponents FindClosest()
 	{
+		//TODO find near player by this because other troop is there
 		TroopComponents enemyNearest = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position);
-		if(enemyNearest.attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
+		if (enemyNearest.attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
 		{
-			if (enemyAttackPlayer != null && enemyNearest == enemyAttackPlayer)
-				return enemyNearest;
-			else if(enemyAttackPlayer != null && enemyNearest != enemyAttackPlayer)
-			{
-				enemyAttackPlayer.attackingSystem.enemyTroopAttacking--;
-			}
-			enemyNearest.attackingSystem.enemyTroopAttacking++;
-			enemyAttackPlayer = enemyNearest;
+			ChooseEnemyTroop(enemyNearest);
 			return enemyAttackPlayer;
 		}
-		return null;
+		else
+		{
+			CommanderScript commanderOther = enemyNearest.playerController.Mycommander.commanderScript;
+			if (commanderOther == null)
+				return null;
+			else
+			{
+				enemyNearest = null;
+				float distance = float.PositiveInfinity;
+				for (int i = 0; i < commanderOther.controlledTroops.Count; i++)
+				{
+					if (commanderOther.controlledTroops[i].attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
+					{
+						float tempDistance = (commanderOther.controlledTroops[i].transform.position - troopObject.transform.position).sqrMagnitude;
+						if(tempDistance < distance)
+						{
+							distance = tempDistance;
+							enemyNearest = commanderOther.controlledTroops[i];
+						}
+					}
+				}
+				ChooseEnemyTroop(enemyNearest);
+				return enemyAttackPlayer;
+			}
+		}
 	}
+
+	public void ChooseEnemyTroop(TroopComponents enemyNearest)
+	{
+		if (enemyAttackPlayer != null && !enemyAttackPlayer.isDestroyed && enemyNearest != enemyAttackPlayer)
+		{
+			enemyAttackPlayer.attackingSystem.enemyTroopAttacking--;
+		}
+		enemyNearest.attackingSystem.enemyTroopAttacking++;
+		enemyAttackPlayer = enemyNearest;
+	}
+
+	public AttackingSystem() { }
 }

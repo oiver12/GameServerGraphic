@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 using GameServer.ArrayExtensions;
+using System.Runtime.Serialization;
+using System.Xml;
 
 //Got it from https://stackoverflow.com/questions/129389/how-do-you-do-a-deep-copy-of-an-object-in-net/11308879#11308879
 namespace GameServer
@@ -142,6 +146,18 @@ namespace GameServer
 			box.SelectionColor = color;
 			box.AppendText(text);
 			box.SelectionColor = box.ForeColor;
+		}
+
+
+		public static string SerializeObject<T>(this T toSerialize)
+		{
+			XmlSerializer xmlSerializer = new XmlSerializer(toSerialize.GetType());
+
+			using (StringWriter textWriter = new StringWriter())
+			{
+				xmlSerializer.Serialize(textWriter, toSerialize);
+				return textWriter.ToString();
+			}
 		}
 	}
 

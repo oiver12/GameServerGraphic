@@ -36,6 +36,7 @@ public enum ClientPackets
 	setAttack = 9,
 	PlaceArmy = 10,
 	Exception = 11,
+	moveToNewGrid = 12,
 }
 
 public class Packet : IDisposable
