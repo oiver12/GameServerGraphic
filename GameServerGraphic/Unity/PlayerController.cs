@@ -535,21 +535,9 @@ public class PlayerController : MonoBehaviour
 		{
 			ignoreCommanderTurning = false;
 			troopObject.commanderScript.SetFormation();
-			//MoveToPosition(troopObject.transform.position + troopObject.commanderScript.tempAttackGridDir, false);
 			CheckForSend(SendState.noSend);
-			//richAI.canMove = false;
-			//commanderIsTurning = true;
-			//troopObject.commanderScript.prepareForFormation();
-			//setOneTime = false;
-			//currentState = STATE.Moving;
-			//troopObject.richAI.steeringTarget = troopObject.transform.position + troopObject.commanderScript.tempAttackGridDir;
-			//troopObject.richAI.FinalizeRotation(Quaternion.LookRotation(troopObject.commanderScript.tempAttackGridDir, Vector3.up));
-			//Form1.SpawnPointAt(troopObject.transform.position + troopObject.transform.forward * 20f, System.Drawing.Color.AliceBlue, 10);
-			//for (int i = 0; i < troopObject.commanderScript.formationObject.formationObjects.Length; i++)
-			//{
-			//	Form1.SpawnPointAt(troopObject.commanderScript.formationObject.formationObjects[i].transform.position, System.Drawing.Color.Red, 15);
-			//}
-			//troopObject.commanderScript.SetFormation();
+			currentState = STATE.Idle;
+			currentWalkMode = WalkMode.Normal;
 			return;
 		}
 		/*if (tempAttackGrid && GetComponentInParent<CommanderScript>() == null)
@@ -617,7 +605,7 @@ public class PlayerController : MonoBehaviour
 	{
 		Debug.Log(Vector3.Angle(secondPos - troopObject.transform.position, secondDir));
 		bezierCurve = new BezierCurveXZPlane();
-		bezierCurve.BezierCurveXZPlaneFromHermitCurve(troopObject.transform.position, troopObject.transform.forward, secondPos, secondDir);
+		bezierCurve.BezierCurveXZPlaneFromHermitCurve(troopObject.transform.position, troopObject.transform.forward, secondPos, secondDir, true);
 		bezierCurve.CalculateBezierCurve(true);
 		bezierCurve.StartMove();
 		currentState = STATE.Moving;

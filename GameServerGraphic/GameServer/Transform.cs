@@ -77,9 +77,6 @@ namespace GameServer
 				if (float.IsNaN(value.w))
 					throw new System.Exception("Rot was NaN");
 
-				//eine rotations Matrix mit der Differenz der beiden Rotationen Analog zu (trans = Vector3 translation = value - m_postion; aus position)
-				if(troopObject != null && troopObject.commanderScript != null && (value * Quaternion.Inverse(m_rotation)).Length() < 0.9f)
-					Debug.Log("OK");
 				var moveMatrix = System.Numerics.Matrix4x4.CreateFromQuaternion((value * Quaternion.Inverse(m_rotation)).ToSytemNumericQuaternion());
 				m_rotation = value;
 				for (int i = 0; i < childs.Count; i++)

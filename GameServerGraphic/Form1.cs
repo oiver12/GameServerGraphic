@@ -443,7 +443,7 @@ namespace GameServerGraphic
 					return;
 				}
 			}
-			//HermitCurveTest();
+			HermitCurveTest();
 		}
 
 		static void HermitCurveTest()
@@ -479,7 +479,7 @@ namespace GameServerGraphic
 				stopWatch.Start();
 				//ExtensionMethods.SearchHermiteCurve(firstPosition, firstDir.normalized, thirdPosition, secondDir.normalized, out float radiusFirstDir, out float radiusSecondDir, out float distance);
 				bezier = new BezierCurveXZPlane();
-				bezier.BezierCurveXZPlaneFromHermitCurve(firstPosition, firstDir, thirdPosition, secondDir);
+				bezier.BezierCurveXZPlaneFromHermitCurve(firstPosition, firstDir, thirdPosition, secondDir , true);
 				bezier.CalculateBezierCurve(true);
 				//Player.SearchBezierCurve(firstPosition, (secondPosition - firstPosition).normalized, thirdPosition, (thirdPosition - fourthPosition).normalized);
 				//Player.DrawNewBezierCruve(new Vector2(firstPosition.x, firstPosition.z), new Vector2(firstDir.x, firstDir.z), new Vector2(thirdPosition.x, thirdPosition.z), new Vector2(secondDir.x, secondDir.z));

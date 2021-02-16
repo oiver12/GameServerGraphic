@@ -21,9 +21,10 @@ namespace GameServer
 		const float distanceMultiplicator = 2;
 		const float angleMultiplicatorMin = 0.2f;
 		const float angleMultiplicatorMax = 2.5f;
+		const float angleSwitchDir = 140f;
 
 		private float maxDistanceBetweenTwoPoints = float.NaN;
-		double[] polynomFunction;
+		//double[] polynomFunction;
 		private Vector3 _firstPosition;
 		private Vector3 _secondPosition;
 		private Vector3 _thirdPosition;
@@ -81,7 +82,7 @@ namespace GameServer
 
 		public BezierCurveXZPlane(){ }
 
-		public void BezierCurveXZPlaneFromHermitCurve(Vector3 firstPos, Vector3 firstDir, Vector3 secondPos, Vector3 secondDir)
+		public void BezierCurveXZPlaneFromHermitCurve(Vector3 firstPos, Vector3 firstDir, Vector3 secondPos, Vector3 secondDir, bool canSwitchDir)
 		{
 			firstPos2 = new Vector2(firstPos.x, firstPos.z);
 			secondPos2 = new Vector2(secondPos.x, secondPos.z);
@@ -92,10 +93,19 @@ namespace GameServer
 			secondDir2 = secondDir2.normalized;
 			float radius = ((firstPos2+firstDir2) - (secondPos2-secondDir2)).magnitude * distanceMultiplicator;
 			float angleFirstDir = Vector2.Angle(secondPos2 - firstPos2, firstDir2);
-			Debug.Log(angleFirstDir);
-			lengthFirstDir = ExtensionMethods.Map(angleMultiplicatorMin, angleMultiplicatorMax, 0, 180, angleFirstDir) * radius;
 			float angleSecondDir = Vector2.Angle(secondPos2 - firstPos2, secondDir2);
-			Debug.Log(angleSecondDir);
+			//Debug.Log(angleFirstDir);
+			if (angleFirstDir >= angleSwitchDir)
+			{
+				firstDir2 *= -1f;
+				if (angleSecondDir >= angleSwitchDir)
+					secondDir2 *= -1f;
+				radius = ((firstPos2 + firstDir2) - (secondPos2 - secondDir2)).magnitude * distanceMultiplicator;
+				angleFirstDir = Vector2.Angle(secondPos2 - firstPos2, firstDir2);
+				angleSecondDir = Vector2.Angle(secondPos2 - firstPos2, secondDir2);
+			}
+			lengthFirstDir = ExtensionMethods.Map(angleMultiplicatorMin, angleMultiplicatorMax, 0, 180, angleFirstDir) * radius;
+			//Debug.Log(angleSecondDir);
 			lengthSecondDir = ExtensionMethods.Map(angleMultiplicatorMin, angleMultiplicatorMax, 0, 180, angleSecondDir) * radius;
 			firstDir2 *= lengthFirstDir;
 			secondDir2 *= lengthSecondDir;
@@ -111,29 +121,30 @@ namespace GameServer
 
 		public void CalculateBezierCurve(bool shouldDraw)
 		{
+			//List<Tuple<float, float>> allDistances1 = new List<Tuple<float, float>>();
+			//List<Tuple<float, float>> allDistances2 = new List<Tuple<float, float>>();
+			//List<double> x = new List<double>();
+			//List<double> y = new List<double>();
 			intersectPoints = new List<Vector3>();
 			distanceBezierCurve = 0f;
 			Vector2 lastPos = Vector2.zero;
-			//List<Tuple<float, float>> allDistances1 = new List<Tuple<float, float>>();
-			//List<Tuple<float, float>> allDistances2 = new List<Tuple<float, float>>();
-			List<double> x = new List<double>();
-			List<double> y = new List<double>();
 			maxDistanceBetweenTwoPoints = 0f;
 			for (float t = 0; t < 1; t += stepSizeCalculate)
 			{
 				////P = (1−t)3P1 + 3(1−t)2tP2 + 3(1−t)t2P3 + t3P4
 				Vector2 pos2 = (1 - t) * (1 - t) * (1 - t) * firstPos2 + 3 * (1 - t) * (1 - t) * t * secondPos2 + 3 * (1 - t) * t * t * thirdPos2 + t * t * t * fourthPos2;
-
 				Vector3 pos = new Vector3(pos2.x, firstPosition.y, pos2.y);
 				if (t != 0)
 				{
-					y.Add((pos2 - lastPos).magnitude);
-					x.Add(t);
+					//y.Add((pos2 - lastPos).magnitude);
+					//x.Add(t);
+					//allDistances1.Add(new Tuple<float, float>(t, dB(t).magnitude/*(pos2 - lastPos).magnitude*/));
+					//allDistances2.Add(new Tuple<float, float>(t, (pos2 - lastPos).magnitude));
+
 					float tempDistanceBetweenTwoPoints = (pos2 - lastPos).magnitude;
 					if (tempDistanceBetweenTwoPoints > maxDistanceBetweenTwoPoints)
 						maxDistanceBetweenTwoPoints = tempDistanceBetweenTwoPoints;
-					//allDistances1.Add(new Tuple<float, float>(t, GetSecondDerivative(t).magnitude/*(pos2 - lastPos).magnitude*/));
-					//allDistances1.Add(new Tuple<float, float>(t, (pos2 - lastPos).magnitude));
+
 					distanceBezierCurve += tempDistanceBetweenTwoPoints;
 				}
 				lastPos = pos2;
@@ -148,8 +159,8 @@ namespace GameServer
 				if(shouldDraw)
 					Form1.SpawnPointAt(pos, System.Drawing.Color.Pink, 2);
 			}
-			polynomFunction = ExtensionMethods.Polyfit(x.ToArray(), y.ToArray(), 5);
-			Debug.Log(polynomFunction.Length);
+			//Form1.SpawnPointAt(new Vector3(spawn.x, firstPosition.y, spawn.y), System.Drawing.Color.Red, 20);
+			//polynomFunction = ExtensionMethods.Polyfit(x.ToArray(), y.ToArray(), 5);
 			//ExtensionMethods.WriteToExcel(allDistances1, allDistances2);
 		}
 
@@ -216,12 +227,14 @@ namespace GameServer
 		public Vector3 Move(float moveSpeed)
 		{
 			Vector2 moveDir = dB(tMove);
-			float distance = (float)polynomFunction[5] * tMove * tMove * tMove * tMove * tMove+ (float)polynomFunction[4] * tMove * tMove * tMove * tMove + (float)polynomFunction[3] * tMove * tMove * tMove + (float)polynomFunction[2] * tMove * tMove + (float)polynomFunction[1] * tMove + (float)polynomFunction[0];
+			float moveDirMagnitude = moveDir.magnitude;
+			//float distance = (float)polynomFunction[5] * tMove * tMove * tMove * tMove * tMove+ (float)polynomFunction[4] * tMove * tMove * tMove * tMove + (float)polynomFunction[3] * tMove * tMove * tMove + (float)polynomFunction[2] * tMove * tMove + (float)polynomFunction[1] * tMove + (float)polynomFunction[0];
 			//laufe weniger schnell in den Kurven --> es hat Kurven wenn die Distance für eine Δt von stepSiteCalculate klein ist im Vergleich zum grössten Abstand
 			//evt. Abhängigkeit von der Breite der Armee(äusserste Truppe nicht so schnell laufen)?
-			moveSpeed *= distance / maxDistanceBetweenTwoPoints;
+			moveSpeed *= (moveDirMagnitude * stepSizeCalculate) / maxDistanceBetweenTwoPoints;
 			//die Distance welchen diesen Frame gelaufen wird: Δs = Time.deltaTime(=Δt) * moveSpeed(=v). Man weiss das eine Distance von distance eine Vergrösserung in t von stepSizeCalculate zur Folge hat also: (Δs/distance) * stepSizeCalculate = Vergrösserung in t in diesem Frame
-			tMove += ((Time.deltaTime * moveSpeed) / distance) * stepSizeCalculate;
+			//tMove += ((Time.deltaTime * moveSpeed) / distance) * stepSizeCalculate;
+			tMove += (Time.deltaTime * moveSpeed) / moveDirMagnitude;
 			if(tMove >= 1f)
 			{
 				return Vector3.zero;

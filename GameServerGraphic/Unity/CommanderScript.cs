@@ -506,7 +506,7 @@ public class CommanderScript : MonoBehaviour
 		attackGrid = true;
 		Vector3 commanderToPos = formationObject.formationObjects[0].transform.position;
 		formationObject.transform.localPosition = Vector3.zero;
-		formationObject.transform.rotation = troopObject.transform.rotation;
+		//formationObject.transform.rotation = troopObject.transform.rotation;
 		formationObject.transform.parent = troopObject.transform;
 		Form1.SpawnPointAt(formationObject.transform.position, Color.Blue, 10);
 		Form1.SpawnPointAt(formationObject.transform.position + formationObject.transform.forward * 10f, Color.AliceBlue, 10);
