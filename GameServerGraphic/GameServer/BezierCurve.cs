@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace GameServer
 {
+	[Serializable]
 	public class BezierCurveXZPlane
 	{
 		public float lengthFirstDir;
