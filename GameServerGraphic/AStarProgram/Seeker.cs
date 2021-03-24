@@ -20,6 +20,8 @@ namespace Pathfinding
 	[System.Serializable]
 	public class Seeker
 	{
+
+		TroopComponents troopObject;
 		/// <summary>
 		/// Enables drawing of the last calculated path using Gizmos.
 		/// The path will show up in green.
@@ -120,7 +122,7 @@ namespace Pathfinding
 
 		/// <summary>Used for drawing gizmos</summary>
 		[System.NonSerialized]
-		List<Vector3> lastCompletedVectorPath;
+		public List<Vector3> lastCompletedVectorPath;
 
 		/// <summary>Used for drawing gizmos</summary>
 		[System.NonSerialized]
@@ -162,8 +164,9 @@ namespace Pathfinding
 		}
 
 		/// <summary>Initializes a few variables</summary>
-		public void Awake()
+		public void Awake(TroopComponents troopComponents)
 		{
+			troopObject = troopComponents;
 			startEndModifier.Awake(this);
 		}
 

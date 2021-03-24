@@ -17,6 +17,7 @@ namespace GameServer
 		public float stepSizeCalculate = 0.01f;
 		public float distanceBezierCurve = float.NaN;
 		public float tMove = 0f;
+		public float maxDistanceBetweenTwoPoints = float.NaN;
 		public List<Vector3> intersectPoints;
 
 		const float distanceMultiplicator = 2;
@@ -24,7 +25,6 @@ namespace GameServer
 		const float angleMultiplicatorMax = 2.5f;
 		const float angleSwitchDir = 140f;
 
-		private float maxDistanceBetweenTwoPoints = float.NaN;
 		//double[] polynomFunction;
 		private Vector3 _firstPosition;
 		private Vector3 _secondPosition;

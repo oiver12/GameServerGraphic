@@ -41,6 +41,7 @@ namespace Pathfinding {
 		///
 		/// \htmlonly <video class="tinyshadow" controls loop><source src="images/richai_slowdown_time.mp4" type="video/mp4"></video> \endhtmlonly
 		/// </summary>
+		/// //0.5f
 		public float slowdownTime = 0.5f;
 
 		/// <summary>

@@ -6,6 +6,7 @@ namespace GameServer
 {
 	public static class Time
 	{
+
 		public static float time;
 
 		public static float deltaTime

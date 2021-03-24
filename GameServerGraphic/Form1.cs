@@ -158,7 +158,7 @@ namespace GameServerGraphic
 					//{
 					//	troopsImages[0].Item1.position += bezier.Move(20f);
 					//}
-					Time.time += Constants.MS_PER_TICK;
+					Time.time += Constants.MS_PER_TICK / 1000;
 					Time.frameCount++;
 					if (_nextLoop > DateTime.Now)
 					{
@@ -205,9 +205,16 @@ namespace GameServerGraphic
 				//	Vector2 test = new Vector2((mapSizeX - (mapSizeX * relativx)), (mapSizeY * relativz));
 				//	test = TranslateToNewMap(test);
 				//troopsImages[i].Item2.Image = RotateImage(troopsImages[i].Item2.Image, -200f);
-				Point test = GetInCam(troopsImages[i].Item1.position);
-				troopsImages[i].Item2.Location = new Point((int)test.X, (int)test.Y);
-				troopsImages[i].Item2.BringToFront();
+				try
+				{
+					Point test = GetInCam(troopsImages[i].Item1.position);
+					troopsImages[i].Item2.Location = new Point((int)test.X, (int)test.Y);
+					troopsImages[i].Item2.BringToFront();
+				}
+				catch
+				{
+					Debug.Log("IMG not found");
+				}
 			}
 			for (int i = 0; i < otherPoints.Count; i++)
 			{
@@ -413,7 +420,7 @@ namespace GameServerGraphic
 			if (!error)
 			{
 				UIThreadManager.ExecuteOnMainThread(() =>
-				{
+				{ 
 					textBoxStatic.AppendText(text + "\r\n", Color.Black);
 				}
 				);
@@ -437,9 +444,13 @@ namespace GameServerGraphic
 					TroopComponents thisTroops = troopsImages[i].Item1.troopObject;
 					PlayerController.playerIdNowStop = i;
 					isPaused = true;
+					for (int y = 0; y < thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects.Length; y++)
+					{
+						SpawnPointAt(thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects[y].transform.position, Color.Red, 5);
+					}
 					//string output = thisTroops.SerializeObject();
 					Debug.Log(thisTroops.transform.name);
-					isPaused = false;
+					//isPaused = false;
 					return;
 				}
 			}

@@ -6,6 +6,7 @@ namespace Pathfinding {
 		void UpgradeFromUnityThread ();
 	}
 
+	[System.Serializable]
 	/// <summary>Base class for all components in the package</summary>
 	public abstract class VersionedMonoBehaviour : IVersionedMonoBehaviourInternal {
 		/// <summary>Version of the serialized data. Used for script upgrades.</summary>

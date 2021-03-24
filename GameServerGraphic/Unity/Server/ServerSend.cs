@@ -132,7 +132,26 @@ public class ServerSend
 		}
 	}
 
-	//public static void PlaceArmy(int _toClient, int formationId, Troops arnyCommander, List<Troops> armyTroops, Vector3 spawnPosition)
+	public static void startPath(Vector3[] wayPoints, bool bezierCurve, int troopId, bool ownTroops, int _toClient, float maxDistanceBetweenTwoPointsBezier = 0, float agentSpeed = 0)
+	{
+		using (Packet _packet = new Packet((int)ServerPackets.startPath))
+		{
+			_packet.Write(bezierCurve);
+			if (bezierCurve)
+			{
+				_packet.Write(maxDistanceBetweenTwoPointsBezier);
+				_packet.Write(agentSpeed);
+			}
+			_packet.Write(wayPoints.Length);
+			for (int i = 0; i < wayPoints.Length; i++)
+			{
+				_packet.Write(wayPoints[i]);
+			}
+			_packet.Write(troopId);
+			_packet.Write(ownTroops);
+			SendTCPData(_toClient, _packet);
+		}
+	}
 
 	public static void troopMove(bool ownTroop ,int _toClient, int troopId, Vector3 position, Vector3 nextDestination, float remainingTime, bool hasLeftPath)
 	{
@@ -201,13 +220,14 @@ public class ServerSend
 		}
 		}
 
-	public static void SetInAttackForm(int toClient, int commanderId, Quaternion commanderAngle, float radius, bool ownTroop)
+	public static void SetInAttackForm(int toClient, int commanderId, Quaternion commanderAngle, float radius, bool ownTroop, bool commanderWalkDurîngRotation)
 	{
 		using (Packet _packet = new Packet((int)ServerPackets.setAttackForm))
 		{
 			_packet.Write((ushort)commanderId);
 			_packet.Write(commanderAngle);
 			_packet.Write(ownTroop);
+			_packet.Write(commanderWalkDurîngRotation);
 			if(!ownTroop)
 				_packet.Write(radius);
 			SendTCPData(toClient, _packet);

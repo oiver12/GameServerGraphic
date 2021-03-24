@@ -21,7 +21,7 @@ namespace GameServer
 			transform = tr;
 			transform.troopObject = this;
 			seeker = sk;
-			seeker.Awake();
+			seeker.Awake(this);
 			richAI = rich;
 			richAI.OnEnable(this);
 			richAI.Start();
@@ -32,6 +32,10 @@ namespace GameServer
 			attackingSystem = _attackingSystem;
 			//attackingSystem.Start(this);
 			seeker.traversableTags = ~0;
+			var funnel = new FunnelModifier();
+			funnel.seeker = seeker;
+			funnel.OnEnable();
+			//seeker.RegisterModifier(new FunnelModifier());
 #if graphic
 			Form1.AddTroop(transform);
 #endif

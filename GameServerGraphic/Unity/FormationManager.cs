@@ -52,7 +52,8 @@ public static class FormationManager
 			{
 				FormationObject formation = commander.commanderScript.formationObject;
 				commander.commanderScript.childReachedPositionCount = 0;
-				formation.transform.rotation = commander.transform.rotation;
+				//if(!toNewAttackGrid)
+				//	formation.transform.rotation = commander.transform.rotation;
 
 				if (hasToStayInLine)
 					distance = MakeFormationStayInLine(formation, troops, commander, id);
@@ -84,8 +85,8 @@ public static class FormationManager
 			}
 		}
 		commander.commanderScript.formationRadius = distance + 1;
-		ServerSend.SetInAttackForm(clientId, commander.playerController.troopId, commander.transform.rotation, distance + 1, true);
-		ServerSend.SetInAttackForm(Server.clients[clientId].enemyClient.id, commander.playerController.troopId, commander.transform.rotation, distance + 1, false);
+		ServerSend.SetInAttackForm(clientId, commander.playerController.troopId, commander.commanderScript.formationObject.transform.rotation, distance + 1, true, commander.commanderScript.commanderWalkDuringRotation);
+		ServerSend.SetInAttackForm(Server.clients[clientId].enemyClient.id, commander.playerController.troopId, commander.commanderScript.formationObject.transform.rotation, distance + 1, false, commander.commanderScript.commanderWalkDuringRotation);
 		return distance;
 	}
 
@@ -125,7 +126,6 @@ public static class FormationManager
 		commander.attackingSystem.lineInFormation = GetLine(formation.formationObjects[0], lines);
 		for (int i = 0; i < troops.Count; i++)
 		{
-			troops[i].transform.parent = commander.transform;
 			PlayerController playerControllerTroop = troops[i].playerController;
 			playerControllerTroop.Mycommander = commander;
 			playerControllerTroop.currentWalkMode = WalkMode.InAttackGrid;
@@ -141,7 +141,17 @@ public static class FormationManager
 			//playerControllerTroop.indexOnAttackGrid = nearestObject.GetSiblingIndex();
 			allChildren.RemoveAt(index);
 			allChildren.UpdatePositions();
-			playerControllerTroop.MoveToPosition(nearestObject.position, true);
+			if (!commander.commanderScript.commanderWalkDuringRotation)
+			{
+				troops[i].transform.parent = commander.transform;
+				playerControllerTroop.MoveToPosition(nearestObject.position, true);
+			}
+			else
+			{
+				playerControllerTroop.currentState = STATE.Moving;
+				troops[i].richAI.enabled = true;
+				troops[i].richAI.canMove = true;
+			}
 		}
 		return Mathf.Sqrt(distance);
 	}

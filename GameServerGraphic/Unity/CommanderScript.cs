@@ -19,6 +19,7 @@ public class CommanderScript : MonoBehaviour
 	public bool attackGrid;
 	public bool formationHasToStayInLine;
 	public bool hasToWalk = false;
+	public bool commanderWalkDuringRotation = false;
 	public int formationId;
 	public int childReachedPositionCount;
 	public float formationRadius;
@@ -68,12 +69,20 @@ public class CommanderScript : MonoBehaviour
 		{
 			Debug.Log("All Troops Arrived");
 			richAI.radius = agentRadius + 1f;
-			//if(GetComponent<PlayerController>().currentState  != STATE.Following)
-			//	GetComponent<PlayerController>().richAI.endReachedDistance = Mathf.CeilToInt(agentRadius - 2f);
 			seeker.traversableTags = GetAgentType(agentRadius + 1);
-			if(playerController.commanderIsTurning)
+			if (!commanderWalkDuringRotation)
 			{
-				playerController.ResumeCommanderWalk();
+				if (playerController.commanderIsTurning)
+				{
+					playerController.ResumeCommanderWalk();
+				}
+			}
+			else
+			{
+				playerController.commanderIsTurning = false;
+				ServerSend.troopMove(true, clientId, playerController.troopId, troopObject.transform.position, richAI.steeringTarget, 3000f, false);
+				ServerSend.troopMove(false, playerController.myClient.enemyClient.id, playerController.troopId, troopObject.transform.position, richAI.steeringTarget, 3000f, false);
+				richAI.maxSpeed = playerController.myTroop.moveSpeed;
 			}
 		}
 	}
@@ -109,14 +118,19 @@ public class CommanderScript : MonoBehaviour
 
 	}
 
-	public void prepareForFormation()
+	public float prepareForFormation()
 	{
 		richAI.radius = 0.5f;
+		float slowestTroop = troopObject.richAI.maxSpeed;
 		foreach (TroopComponents troop in controlledTroops)
 		{
+			if (troop.richAI.maxSpeed < slowestTroop)
+				slowestTroop = troop.richAI.maxSpeed;
 			troop.transform.parent = troopObject.transform.parent;
+			troop.richAI.SetPath(null);
 			//troop.playerController.transformOnAttackGrid = null;
 		}
+		return slowestTroop;
 	}
 
 	public void SetAgentRadius(float radius)
@@ -466,28 +480,34 @@ public class CommanderScript : MonoBehaviour
 
 	public void MakeAttackGrid(int width, int length, Vector3 startPoint, Vector3 widthDir)
 	{
-		float deltaX = 5f;
+		float deltaX = 2f;
 		Vector3 lineLength = (Quaternion.Euler(0f, 90f, 0f) * widthDir).normalized;
 		int amountUnits = controlledTroops.Count + 1;
 		formationObject.formationObjects = new FormationChild[amountUnits];
-		int commanderPlace = (length / 2 * width) + width / 2;
 		tempAttackGridDir = lineLength;
 		formationObject.transform.rotation = Quaternion.LookRotation(lineLength, Vector3.up);
 		formationObject.transform.name = formationId.ToString();
+		int rest = amountUnits - width * (length - 1) - 1;
+		int commanderPlace = ((length-2) / 2 * width + rest) + width / 2;
 		//formationObject.transform.rotation = Quaternion.LookRotation(lineLength, Vector3.up);
 		//relative to Commander and move whole thing with commander
 		for (int i = 0; i < length; i++)
 		{
 			Vector3 pointOnColumns = startPoint + lineLength * deltaX * i;
 			int offset = 0;
-			if (i == length - 1)
+			if (i == 0)
 			{
-				offset = (int)(width / 2f) - (int)((amountUnits - i * width) / 2f);
+				offset = (int)(width / 2f) - (int)((rest) / 2f);
 			}
 			for (int y = 0; y < width; y++)
 			{
+				if (i == 0 && y > rest)
+					break;
 				Vector3 pointOnRow = pointOnColumns + widthDir * deltaX * (y + offset);
-				int index = (i * width) + y;
+				int index = ((i - 1) * width) + y + rest + 1;
+				if (i == 0)
+					index = y;
+
 				if (index < commanderPlace)
 					index += 1;
 				else if (index == commanderPlace)
@@ -496,13 +516,9 @@ public class CommanderScript : MonoBehaviour
 					formationObject.transform.MoveWithoutChilds(pointOnRow);
 				}
 
-				if (index >= amountUnits)
-					break;
-
 				formationObject.formationObjects[index] = new FormationChild(new Transform(pointOnRow, Quaternion.Identity, formationObject.transform), i, null, null);
 			}
 		}
-		SetFormation(true);
 		attackGrid = true;
 		Vector3 commanderToPos = formationObject.formationObjects[0].transform.position;
 		formationObject.transform.localPosition = Vector3.zero;

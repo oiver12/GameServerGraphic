@@ -59,7 +59,7 @@ namespace Pathfinding {
 		public Seeker seeker;
 
 		/// <summary>Alerts the Seeker that this modifier exists</summary>
-		protected virtual void OnEnable () {
+		public virtual void OnEnable () {
 			//seeker = GetComponent<Seeker>();
 
 			if (seeker != null) {
