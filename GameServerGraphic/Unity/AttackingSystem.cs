@@ -274,7 +274,7 @@ public class AttackingSystem : MonoBehaviour
 				else
 				{
 					playerController.currentState = STATE.attackGrid;
-					commander.attackingSystem.enemyAttackPlayer = enemyTroop;
+					//commander.attackingSystem.enemyAttackPlayer = enemyTroop;
 					commander.commanderScript.SetAttackInForm(enemyTroop, true);
 				}
 			}
@@ -407,99 +407,99 @@ public class AttackingSystem : MonoBehaviour
 		}
 
 		//angreifen im Charge 
-		else if (myAttackStyle == AttackStyle.Charge)
-		{
-			//es wird in einem Radius von 10 meter gesucht ob noch eine Truppe lebt
-			if ((troopObject.transform.position - enemyClosest.transform.position).sqrMagnitude < (attackSearchRange * attackSearchRange))
-			{
-				//eine Variabel auf der Truppe zeigt an, von wie vielenTruppen man gerade angegriffen wird.
-				if (enemyClosest != enemyAttackPlayer)
-				{
-					if (enemyAttackPlayer != null && enemyAttackPlayer.attackingSystem.enemyPlayerHitting > 0)
-						enemyAttackPlayer.attackingSystem.enemyPlayerHitting--;
-					//es dürfen nur immer drei Truppen eine andere Truppe angreifen, dass sie sich verteilen --> es greifen schon 3 an, also muss eine andere Truppe angegriffen werden
-					if (enemyClosest.attackingSystem.enemyPlayerHitting >= maxPlayerPerChargeAttack)
-					{
-						if (enemyClosest.GetParentTroopComponents().commanderScript != null)
-						{
-							CommanderScript enemyCOmmander = enemyClosest.playerController.Mycommander.commanderScript;
-							float distance = float.PositiveInfinity;
-							for (int i = 0; i < enemyCOmmander.controlledTroops.Count; i++)
-							{
-								if (enemyCOmmander.controlledTroops[i].attackingSystem.enemyPlayerHitting < maxPlayerPerChargeAttack)
-								{
-									float tempDistance = Vector3.Distance(troopObject.transform.position, enemyCOmmander.controlledTroops[i].transform.position);
-									if (tempDistance < distance)
-									{
-										distance = tempDistance;
-										enemyClosest = enemyCOmmander.controlledTroops[i];
-									}
-								}
-							}
-							if (enemyCOmmander.troopObject.attackingSystem.enemyPlayerHitting < maxPlayerPerChargeAttack && Vector3.Distance(troopObject.transform.position, enemyCOmmander.troopObject.transform.position) < distance)
-							{
-								Debug.Log("Has choosen Commander");
-								enemyClosest = enemyCOmmander.troopObject;
-							}
-						}
-					}
-					enemyClosest.attackingSystem.enemyPlayerHitting++;
-				}
-				AttackCharce(enemyClosest);
-			}
-			else
-			{
-				comm.attackTroops.Remove(troopObject.transform);
-				CommanderWalkFormation();
-			}
-		}
+		//else if (myAttackStyle == AttackStyle.Charge)
+		//{
+		//	//es wird in einem Radius von 10 meter gesucht ob noch eine Truppe lebt
+		//	if ((troopObject.transform.position - enemyClosest.transform.position).sqrMagnitude < (attackSearchRange * attackSearchRange))
+		//	{
+		//		//eine Variabel auf der Truppe zeigt an, von wie vielenTruppen man gerade angegriffen wird.
+		//		if (enemyClosest != enemyAttackPlayer)
+		//		{
+		//			if (enemyAttackPlayer != null && enemyAttackPlayer.attackingSystem.enemyPlayerHitting > 0)
+		//				enemyAttackPlayer.attackingSystem.enemyPlayerHitting--;
+		//			//es dürfen nur immer drei Truppen eine andere Truppe angreifen, dass sie sich verteilen --> es greifen schon 3 an, also muss eine andere Truppe angegriffen werden
+		//			if (enemyClosest.attackingSystem.enemyPlayerHitting >= maxPlayerPerChargeAttack)
+		//			{
+		//				if (enemyClosest.GetParentTroopComponents().commanderScript != null)
+		//				{
+		//					CommanderScript enemyCOmmander = enemyClosest.playerController.Mycommander.commanderScript;
+		//					float distance = float.PositiveInfinity;
+		//					for (int i = 0; i < enemyCOmmander.controlledTroops.Count; i++)
+		//					{
+		//						if (enemyCOmmander.controlledTroops[i].attackingSystem.enemyPlayerHitting < maxPlayerPerChargeAttack)
+		//						{
+		//							float tempDistance = Vector3.Distance(troopObject.transform.position, enemyCOmmander.controlledTroops[i].transform.position);
+		//							if (tempDistance < distance)
+		//							{
+		//								distance = tempDistance;
+		//								enemyClosest = enemyCOmmander.controlledTroops[i];
+		//							}
+		//						}
+		//					}
+		//					if (enemyCOmmander.troopObject.attackingSystem.enemyPlayerHitting < maxPlayerPerChargeAttack && Vector3.Distance(troopObject.transform.position, enemyCOmmander.troopObject.transform.position) < distance)
+		//					{
+		//						Debug.Log("Has choosen Commander");
+		//						enemyClosest = enemyCOmmander.troopObject;
+		//					}
+		//				}
+		//			}
+		//			enemyClosest.attackingSystem.enemyPlayerHitting++;
+		//		}
+		//		AttackCharce(enemyClosest);
+		//	}
+		//	else
+		//	{
+		//		comm.attackTroops.Remove(troopObject.transform);
+		//		CommanderWalkFormation();
+		//	}
+		//}
 	}
 
-	public TroopComponents FindClosest()
-	{
-		//TODO find near player by this because other troop is there
-		TroopComponents enemyNearest = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position);
-		if (enemyNearest.attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
-		{
-			ChooseEnemyTroop(enemyNearest);
-			return enemyAttackPlayer;
-		}
-		else
-		{
-			CommanderScript commanderOther = enemyNearest.playerController.Mycommander.commanderScript;
-			if (commanderOther == null)
-				return null;
-			else
-			{
-				enemyNearest = null;
-				float distance = float.PositiveInfinity;
-				for (int i = 0; i < commanderOther.controlledTroops.Count; i++)
-				{
-					if (commanderOther.controlledTroops[i].attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
-					{
-						float tempDistance = (commanderOther.controlledTroops[i].transform.position - troopObject.transform.position).sqrMagnitude;
-						if(tempDistance < distance)
-						{
-							distance = tempDistance;
-							enemyNearest = commanderOther.controlledTroops[i];
-						}
-					}
-				}
-				ChooseEnemyTroop(enemyNearest);
-				return enemyAttackPlayer;
-			}
-		}
-	}
+	//public TroopComponents FindClosest()
+	//{
+	//	//TODO find near player by this because other troop is there
+	//	TroopComponents enemyNearest = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position);
+	//	if (enemyNearest.attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
+	//	{
+	//		ChooseEnemyTroop(enemyNearest);
+	//		return enemyAttackPlayer;
+	//	}
+	//	else
+	//	{
+	//		CommanderScript commanderOther = enemyNearest.playerController.Mycommander.commanderScript;
+	//		if (commanderOther == null)
+	//			return null;
+	//		else
+	//		{
+	//			enemyNearest = null;
+	//			float distance = float.PositiveInfinity;
+	//			for (int i = 0; i < commanderOther.controlledTroops.Count; i++)
+	//			{
+	//				if (commanderOther.controlledTroops[i].attackingSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
+	//				{
+	//					float tempDistance = (commanderOther.controlledTroops[i].transform.position - troopObject.transform.position).sqrMagnitude;
+	//					if(tempDistance < distance)
+	//					{
+	//						distance = tempDistance;
+	//						enemyNearest = commanderOther.controlledTroops[i];
+	//					}
+	//				}
+	//			}
+	//			ChooseEnemyTroop(enemyNearest);
+	//			return enemyAttackPlayer;
+	//		}
+	//	}
+	//}
 
-	public void ChooseEnemyTroop(TroopComponents enemyNearest)
-	{
-		if (enemyAttackPlayer != null && !enemyAttackPlayer.isDestroyed && enemyNearest != enemyAttackPlayer)
-		{
-			enemyAttackPlayer.attackingSystem.enemyTroopAttacking--;
-		}
-		enemyNearest.attackingSystem.enemyTroopAttacking++;
-		enemyAttackPlayer = enemyNearest;
-	}
+	//public void ChooseEnemyTroop(TroopComponents enemyNearest)
+	//{
+	//	if (enemyAttackPlayer != null && !enemyAttackPlayer.isDestroyed && enemyNearest != enemyAttackPlayer)
+	//	{
+	//		enemyAttackPlayer.attackingSystem.enemyTroopAttacking--;
+	//	}
+	//	enemyNearest.attackingSystem.enemyTroopAttacking++;
+	//	enemyAttackPlayer = enemyNearest;
+	//}
 
 	public AttackingSystem() { }
 }

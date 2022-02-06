@@ -84,6 +84,8 @@ public static class FormationManager
 				commander.commanderScript.attackGrid = true;
 			}
 		}
+		commander.playerController.transformOnAttackGrid = commander.commanderScript.formationObject.formationObjects[0];
+		commander.playerController.transformOnAttackGrid.troopOnFormationChild = commander;
 		commander.commanderScript.formationRadius = distance + 1;
 		ServerSend.SetInAttackForm(clientId, commander.playerController.troopId, commander.commanderScript.formationObject.transform.rotation, distance + 1, true, commander.commanderScript.commanderWalkDuringRotation);
 		ServerSend.SetInAttackForm(Server.clients[clientId].enemyClient.id, commander.playerController.troopId, commander.commanderScript.formationObject.transform.rotation, distance + 1, false, commander.commanderScript.commanderWalkDuringRotation);
@@ -123,7 +125,7 @@ public static class FormationManager
 		allChildren.RemoveAt(0);
 		allChildren.UpdatePositions();
 		int lines = GetLinesCount(id, troops.Count);
-		commander.attackingSystem.lineInFormation = GetLine(formation.formationObjects[0], lines);
+		commander.playerController.lineInFormation = GetLine(formation.formationObjects[0], lines);
 		for (int i = 0; i < troops.Count; i++)
 		{
 			PlayerController playerControllerTroop = troops[i].playerController;
@@ -137,7 +139,8 @@ public static class FormationManager
 			//bekommen von Zahl, auf welchem  die Truppe steht
 			int line = GetLine(allChildren[index], lines);
 			playerControllerTroop.transformOnAttackGrid = allChildren[index];
-			troops[i].attackingSystem.lineInFormation = line;
+			playerControllerTroop.transformOnAttackGrid.troopOnFormationChild = playerControllerTroop.troopObject;
+			troops[i].playerController.lineInFormation = line;
 			//playerControllerTroop.indexOnAttackGrid = nearestObject.GetSiblingIndex();
 			allChildren.RemoveAt(index);
 			allChildren.UpdatePositions();
@@ -170,10 +173,10 @@ public static class FormationManager
 		}
 		allChildren.UpdatePositions();
 		int lines = GetLinesCount(id, troops.Count);
-		commander.attackingSystem.lineInFormation = GetLine(formation.formationObjects[0], lines);
+		commander.playerController.lineInFormation = GetLine(formation.formationObjects[0], lines);
 		for (int i = 0; i < troops.Count; i++)
 		{
-			troops[i].transform.parent = commander.transform;
+			//troops[i].transform.parent = commander.transform;
 			PlayerController playerControllerTroop = troops[i].playerController;
 			playerControllerTroop.Mycommander = commander;
 			playerControllerTroop.currentWalkMode = WalkMode.InNewBoxAttackGrid;	
@@ -186,6 +189,7 @@ public static class FormationManager
 			int index = allChildren.ToList().FindIndex(a => a.transform == nearestObject);
 			int line = GetLine(allChildren[index], lines);
 			playerControllerTroop.transformOnAttackGrid = allChildren[index];
+			playerControllerTroop.transformOnAttackGrid.troopOnFormationChild = playerControllerTroop.troopObject;
 			allChildren.RemoveAt(index);
 			allChildren.UpdatePositions();
 		}
@@ -223,6 +227,7 @@ public static class FormationManager
 			FormationChild nearestObject = playerControllerTroop.transformOnAttackGrid;
 			//bekommen von Zahl, auf welchem  die Truppe steht
 			playerControllerTroop.transformOnAttackGrid = nearestObject;
+			playerControllerTroop.transformOnAttackGrid.troopOnFormationChild = playerControllerTroop.troopObject;
 			playerControllerTroop.MoveToPosition(nearestObject.transform.position, true);
 		}
 		return Mathf.Sqrt(distance);

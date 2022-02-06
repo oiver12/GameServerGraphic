@@ -13,10 +13,11 @@ namespace GameServer
 		public RichAI richAI { get; set; }
 		public CommanderScript commanderScript { get; set; }
 		public PlayerController playerController { get; set; }
-		public AttackingSystem attackingSystem { get; set; }
+		//public AttackingSystem attackingSystem { get; set; }
+		public NewAttackingSystem newAttackSystem { get; set; }
 
 		private TroopComponents(){}
-		public TroopComponents(Transform tr, Seeker sk, RichAI rich, AttackingSystem _attackingSystem, PlayerController _playerController, CommanderScript commander)
+		public TroopComponents(Transform tr, Seeker sk, RichAI rich, PlayerController _playerController, CommanderScript commander, NewAttackingSystem _newAttackingSystem)
 		{
 			transform = tr;
 			transform.troopObject = this;
@@ -29,15 +30,16 @@ namespace GameServer
 			//commanderScript.Start(this);
 			playerController = _playerController;
 			//playerController.Start(this);
-			attackingSystem = _attackingSystem;
+			//attackingSystem = _attackingSystem;
 			//attackingSystem.Start(this);
+			newAttackSystem = _newAttackingSystem;
 			seeker.traversableTags = ~0;
 			var funnel = new FunnelModifier();
 			funnel.seeker = seeker;
 			funnel.OnEnable();
 			//seeker.RegisterModifier(new FunnelModifier());
 #if graphic
-			Form1.AddTroop(transform);
+			//Form1.AddTroop(transform);
 #endif
 		}
 
@@ -45,6 +47,7 @@ namespace GameServer
 		{
 			playerController.Update();
 			richAI.Update();
+			//newAttackSystem.Update();
 			//attackingSystem.Update();
 		}
 
@@ -64,14 +67,15 @@ namespace GameServer
 			return transform.parent.troopObject;
 		}
 
-		//TODO not good better design
+		//TODO not good better design needed
 		public override void DestroyObject()
 		{
+			MEC.Timing.KillCoroutines(playerController.clientId.ToString());
 			seeker = null;
 			richAI = null;
 			commanderScript = null;
 			playerController = null;
-			attackingSystem = null;
+			//attackingSystem = null;
 			base.DestroyObject();
 		}
 	}

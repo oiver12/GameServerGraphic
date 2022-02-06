@@ -19,13 +19,15 @@ public class CommanderScript : MonoBehaviour
 	public bool attackGrid;
 	public bool formationHasToStayInLine;
 	public bool hasToWalk = false;
-	public bool commanderWalkDuringRotation = false;
+	public bool commanderWalkDuringRotation = true;
+	public bool hasStoppedAttack = false;
 	public int formationId;
 	public int childReachedPositionCount;
 	public float formationRadius;
 	public float minAttackRange = 0f;
+	public float formationDeltaX = 5f;
 	public Vector3 tempAttackGridDir;
-	public AttackStyle attackStyleAtMoment = 0;
+	public AttackStyle attackStyleAtMoment = AttackStyle.Normal;
 	public FormationObject formationObject;
 	//public NormalComponentsObject circleRenderer;
 	public List<Transform> attackTroops = new List<Transform>();
@@ -35,7 +37,7 @@ public class CommanderScript : MonoBehaviour
 
 	protected Vector3 positonToWalkTo;
 	protected PlayerController playerController;
-	protected AttackingSystem attackingSystem;
+	//protected AttackingSystem attackingSystem;
 	protected RichAI richAI;
 	protected Seeker seeker;
 
@@ -53,7 +55,7 @@ public class CommanderScript : MonoBehaviour
 		attackGrid = false;
 		childReachedPositionCount = 0;
 		playerController = troopObject.playerController;
-		attackingSystem = troopObject.attackingSystem;
+		//attackingSystem = troopObject.attackingSystem;
 		richAI = troopObject.richAI;
 		seeker = troopObject.seeker;
 		//circleRenderer = GameObject.Find("LineRendererForCommanderAttack");
@@ -70,19 +72,9 @@ public class CommanderScript : MonoBehaviour
 			Debug.Log("All Troops Arrived");
 			richAI.radius = agentRadius + 1f;
 			seeker.traversableTags = GetAgentType(agentRadius + 1);
-			if (!commanderWalkDuringRotation)
+			if (playerController.commanderIsTurning)
 			{
-				if (playerController.commanderIsTurning)
-				{
-					playerController.ResumeCommanderWalk();
-				}
-			}
-			else
-			{
-				playerController.commanderIsTurning = false;
-				ServerSend.troopMove(true, clientId, playerController.troopId, troopObject.transform.position, richAI.steeringTarget, 3000f, false);
-				ServerSend.troopMove(false, playerController.myClient.enemyClient.id, playerController.troopId, troopObject.transform.position, richAI.steeringTarget, 3000f, false);
-				richAI.maxSpeed = playerController.myTroop.moveSpeed;
+				playerController.ResumeCommanderWalk();
 			}
 		}
 	}
@@ -143,10 +135,10 @@ public class CommanderScript : MonoBehaviour
 	/// </summary>
 	public virtual void BeginAttackInFormation(TroopComponents nearetsObject)
 	{
-		for(int i = 0; i<controlledTroops.Count; i++)
-		{
-			controlledTroops[i].attackingSystem.enemyAttackPlayer = nearetsObject;
-		}
+		//for(int i = 0; i<controlledTroops.Count; i++)
+		//{
+		//	controlledTroops[i].attackingSystem.enemyAttackPlayer = nearetsObject;
+		//}
 		SetAttackInForm(nearetsObject, false);
 	}
 
@@ -155,25 +147,10 @@ public class CommanderScript : MonoBehaviour
 	/// </summary>
 	public virtual void SetAttackInForm(TroopComponents enemyAttackPlayer, bool hasMadeTurn)
 	{
+		Debug.Log("Attack with: " + hasMadeTurn + "  " + attackStyleAtMoment);
 		bool attackOtherAttackGrid = false;
 		TroopComponents otherCommander = null;
-		//check ob der Attackierte in Formation steht, weil dann treffen zwei Formation aufeinander
-		//if(enemyAttackPlayer.GetComponent<CommanderScript>() == null)
-		//{
-		//	if (enemyAttackPlayer.GetComponent<PlayerController>().currentState == STATE.attackGrid)
-		//	{
-		//		attackOtherAttackGrid = true;
-		//		otherCommander = attackingSystem.enemyAttackPlayer.transform.parent;
-		//	}
-		//}
-		//else
-		//{
-		//	if (enemyAttackPlayer.GetComponent<CommanderScript>().attackGrid)
-		//	{
-		//		attackOtherAttackGrid = true;
-		//		otherCommander = attackingSystem.enemyAttackPlayer.transform;
-		//	}
-		//}
+
 		if (enemyAttackPlayer.playerController.Mycommander != null)
 		{
 			otherCommander = enemyAttackPlayer.playerController.Mycommander;
@@ -201,139 +178,215 @@ public class CommanderScript : MonoBehaviour
 		}
 	}
 
-	#region AttackSyles
 	protected virtual void AttackNormalOtherFormation(TroopComponents enemyAttackPlayer, TroopComponents otherCommander, bool hasMadeTurn)
 	{
-		enemyAttackPlayer = otherCommander;
-		enemyAttackPlayer.commanderScript.GettingAttacked(attackStyleAtMoment);
-		float preRadius = richAI.radius;
-		richAI.radius = 0.5f;
-		seeker.traversableTags = GetAgentType(0f);
-		playerController.currentState = STATE.Following;
-		attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
-		if (hasMadeTurn)
+		if(!hasMadeTurn)
 		{
-			//ServerSend.troopMove(true, playerController.clientId, playerController.troopId, transform.position, Vector3.zero, 1f, true, false);
-			//richAI.endReachedDistance = Server.clients[playerController.clientId].player.placedTroops[playerController.troopId].troop.attackRadius;
-			//playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
-			ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
-			SetLineAttack();
+			troopObject.newAttackSystem.StartFollowing(otherCommander, attackStyleAtMoment);
 		}
 		else
 		{
-			//TODO try to attack without circle walk --> prevent backwards Circle
-			if ((troopObject.transform.position - enemyAttackPlayer.transform.position).sqrMagnitude <= distanceFormPointToArmy * distanceFormPointToArmy)
-				Debug.Log("Is nearer");
-			//der Commander wenn der angreifft läuft einen Bogen um in einem richtigen Winkel auf die Truppe zu treffen. Diese Winkel sind bie Formationen definiert
-			positonToWalkTo = GetPointBeforeFormation(enemyAttackPlayer, preRadius);
-			middlePoint = getCirlceMiddlePoint(enemyAttackPlayer.transform);
-			Form1.SpawnPointAt(middlePoint, Color.Green, 10);
-			Form1.SpawnPointAt(positonToWalkTo, Color.Red, 10);
-			playerController.circleMiddlePoint = middlePoint;
-			//circleRenderer.transform.position = middlePoint;
-			//circleRenderer.GetComponent<LineRendererCircle>().radius = Vector3.Distance(transform.position, middlePoint);
-			//circleRenderer.GetComponent<LineRendererCircle>().CreatePoints();
-			movement = middlePoint - positonToWalkTo;
-			movement = new Vector3(movement.z, 0, -movement.x);
-			float dot = Vector3.Dot(movement, positonToWalkTo - enemyAttackPlayer.transform.position);
-			if (dot < 0f)
-				factorCircleSide = 1f;
-			else
-				factorCircleSide = -1f;
-
-			playerController.factorCircleSide = factorCircleSide;
-			movement = middlePoint - troopObject.transform.position;
-			movement = new Vector3(movement.z, 0, -movement.x) * factorCircleSide;
-			if (Vector3.Angle(troopObject.transform.forward, movement) > 16f)
+			attackingLines = new List<TroopComponents>[20];
+			int maxLine = 0;
+			for (int i = 0; i < controlledTroops.Count; i++)
 			{
-				hasToWalk = false;
-				playerController.currentWalkMode = WalkMode.Normal;
-				playerController.StartTruning(movement.normalized);
+				//wenn sterben, die Truppe hinten dran Informieren um seine Platz einzunehem, wenn schon tot oder weg, eine nächsten in der nächsten Riehe finden
+				int myLine = controlledTroops[i].playerController.lineInFormation;
+				if (attackingLines[myLine - 1] == null)
+				{
+					attackingLines[myLine - 1] = new List<TroopComponents>();
+					maxLine++;
+				}
+				if (!attackingLines[myLine - 1].Contains(controlledTroops[i]))
+				{
+					attackingLines[myLine - 1].Add(controlledTroops[i]);
+				}
+				controlledTroops[i].richAI.enabled = true;
+				controlledTroops[i].richAI.canMove = true;
+				controlledTroops[i].playerController.isAttacking = true;
+				controlledTroops[i].transform.parent = null;
+				controlledTroops[i].playerController.currentState = STATE.Following;
 			}
-			else
-			{
-				playerController.currentState = STATE.Following;
-				hasToWalk = true;
-				playerController.currentWalkMode = WalkMode.CircleWalk;
-			}
-			//richAI.endReachedDistance = 0.9f;
-			Timing.RunCoroutine(CheckForDistanceCoroutine());
+			Array.Resize(ref attackingLines, maxLine);
 		}
 	}
 
 	void AttackChargeOtherFormation(TroopComponents enemyAttackPlayer, TroopComponents otherCommander, bool hasMadeTurn)
 	{
-		enemyAttackPlayer = otherCommander;
-		playerController.currentState = STATE.Following;
-		attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
 		if (!hasMadeTurn)
 		{
-			positonToWalkTo = enemyAttackPlayer.transform.position + ((troopObject.transform.position - enemyAttackPlayer.transform.position).normalized * ((formationRadius / 2) + (enemyAttackPlayer.commanderScript.formationRadius / 2) + 8f));
-			//richAI.endReachedDistance = 1.3f;
-			playerController.MoveToPosition(positonToWalkTo, false);
-			Timing.RunCoroutine(CheckForDistanceCoroutine());
+			troopObject.newAttackSystem.StartFollowing(otherCommander, attackStyleAtMoment);
 		}
 		else
 		{
-			enemyAttackPlayer.commanderScript.GettingAttacked(attackStyleAtMoment);
-			float preRadius = richAI.radius;
-			richAI.radius = 0.5f;
-			seeker.traversableTags = GetAgentType(0);
+			Random rand = new Random();
+			attackingLines = new List<TroopComponents>[20];
+			int maxLine = 0;
 			for (int i = 0; i < controlledTroops.Count; i++)
 			{
-				PlayerController controlledTroopPlayerController = controlledTroops[i].playerController;
-				controlledTroopPlayerController.richAI.enabled = true;
-				controlledTroopPlayerController.currentState = STATE.Following;
-				controlledTroopPlayerController.MoveToPosition(enemyAttackPlayer.transform.position + (controlledTroops[i].transform.position - troopObject.transform.position), false);
-				controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
-				//controlledTroopPlayerController.RVOController.priority = 0.4f;
+				//wenn sterben, die Truppe hinten dran Informieren um seine Platz einzunehem, wenn schon tot oder weg, eine nächsten in der nächsten Riehe finden
+				int myLine = controlledTroops[i].playerController.lineInFormation;
+				if (attackingLines[myLine - 1] == null)
+				{
+					attackingLines[myLine - 1] = new List<TroopComponents>();
+					maxLine++;
+				}
+				if (!attackingLines[myLine - 1].Contains(controlledTroops[i]))
+				{
+					attackingLines[myLine - 1].Add(controlledTroops[i]);
+				}
+				controlledTroops[i].richAI.enabled = true;
+				controlledTroops[i].richAI.canMove = true;
+				//controlledTroops[i].richAI.onSearchPath += controlledTroops[i].playerController.UpdateEnemyTroopPoisition;
+				if (myLine == 1)
+					controlledTroops[i].newAttackSystem.StartAttack((float)rand.NextDouble(), attackStyleAtMoment);
+				else
+					controlledTroops[i].newAttackSystem.StartAttack(0, attackStyleAtMoment);
+				controlledTroops[i].playerController.isAttacking = true;
+				controlledTroops[i].transform.parent = null;
+				controlledTroops[i].playerController.currentState = STATE.Following;
 			}
-			playerController.currentState = STATE.Following;
-			playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
-			attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
-			//playerController.RVOController.priority = 0.4f;
-			ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
-			troopObject.playerController.ignoreCommanderTurning = true;
+			Array.Resize(ref attackingLines, maxLine);
+			richAI.onSearchPath += playerController.UpdateEnemyTroopPoisition;
+			playerController.isAttacking = true;
+			troopObject.newAttackSystem.enemyPlayer = otherCommander;
+			troopObject.newAttackSystem.StartAttack((float)rand.NextDouble(), attackStyleAtMoment);
 		}
 	}
+
+	#region AttackSyles
+	//protected virtual void AttackNormalOtherFormation(TroopComponents enemyAttackPlayer, TroopComponents otherCommander, bool hasMadeTurn)
+	//{
+	//	enemyAttackPlayer = otherCommander;
+	//	enemyAttackPlayer.commanderScript.GettingAttacked(attackStyleAtMoment);
+	//	float preRadius = richAI.radius;
+	//	richAI.radius = 0.5f;
+	//	seeker.traversableTags = GetAgentType(0f);
+	//	playerController.currentState = STATE.Following;
+	//	attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
+	//	if (hasMadeTurn)
+	//	{
+	//		//ServerSend.troopMove(true, playerController.clientId, playerController.troopId, transform.position, Vector3.zero, 1f, true, false);
+	//		//richAI.endReachedDistance = Server.clients[playerController.clientId].player.placedTroops[playerController.troopId].troop.attackRadius;
+	//		//playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
+	//		ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
+	//		SetLineAttack();
+	//	}
+	//	else
+	//	{
+	//		//TODO try to attack without circle walk --> prevent backwards Circle
+	//		if ((troopObject.transform.position - enemyAttackPlayer.transform.position).sqrMagnitude <= distanceFormPointToArmy * distanceFormPointToArmy)
+	//			Debug.Log("Is nearer");
+	//		//der Commander wenn der angreifft läuft einen Bogen um in einem richtigen Winkel auf die Truppe zu treffen. Diese Winkel sind bie Formationen definiert
+	//		positonToWalkTo = GetPointBeforeFormation(enemyAttackPlayer, preRadius);
+	//		middlePoint = getCirlceMiddlePoint(enemyAttackPlayer.transform);
+	//		Form1.SpawnPointAt(middlePoint, Color.Green, 10);
+	//		Form1.SpawnPointAt(positonToWalkTo, Color.Red, 10);
+	//		playerController.circleMiddlePoint = middlePoint;
+	//		//circleRenderer.transform.position = middlePoint;
+	//		//circleRenderer.GetComponent<LineRendererCircle>().radius = Vector3.Distance(transform.position, middlePoint);
+	//		//circleRenderer.GetComponent<LineRendererCircle>().CreatePoints();
+	//		movement = middlePoint - positonToWalkTo;
+	//		movement = new Vector3(movement.z, 0, -movement.x);
+	//		float dot = Vector3.Dot(movement, positonToWalkTo - enemyAttackPlayer.transform.position);
+	//		if (dot < 0f)
+	//			factorCircleSide = 1f;
+	//		else
+	//			factorCircleSide = -1f;
+
+	//		playerController.factorCircleSide = factorCircleSide;
+	//		movement = middlePoint - troopObject.transform.position;
+	//		movement = new Vector3(movement.z, 0, -movement.x) * factorCircleSide;
+	//		if (Vector3.Angle(troopObject.transform.forward, movement) > 16f)
+	//		{
+	//			hasToWalk = false;
+	//			playerController.currentWalkMode = WalkMode.Normal;
+	//			playerController.StartTruning(movement.normalized);
+	//		}
+	//		else
+	//		{
+	//			playerController.currentState = STATE.Following;
+	//			hasToWalk = true;
+	//			playerController.currentWalkMode = WalkMode.CircleWalk;
+	//		}
+	//		//richAI.endReachedDistance = 0.9f;
+	//		Timing.RunCoroutine(CheckForDistanceCoroutine(), playerController.clientId.ToString());
+	//	}
+	//}
+
+	//void AttackChargeOtherFormation(TroopComponents enemyAttackPlayer, TroopComponents otherCommander, bool hasMadeTurn)
+	//{
+	//	enemyAttackPlayer = otherCommander;
+	//	playerController.currentState = STATE.Following;
+	//	//attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
+	//	if (!hasMadeTurn)
+	//	{
+	//		positonToWalkTo = enemyAttackPlayer.transform.position + ((troopObject.transform.position - enemyAttackPlayer.transform.position).normalized * ((formationRadius / 2) + (enemyAttackPlayer.commanderScript.formationRadius / 2) + 8f));
+	//		//richAI.endReachedDistance = 1.3f;
+	//		playerController.MoveToPosition(positonToWalkTo, false);
+	//		Timing.RunCoroutine(CheckForDistanceCoroutine(), playerController.clientId.ToString());
+	//	}
+	//	else
+	//	{
+	//		enemyAttackPlayer.commanderScript.GettingAttacked(attackStyleAtMoment);
+	//		float preRadius = richAI.radius;
+	//		richAI.radius = 0.5f;
+	//		seeker.traversableTags = GetAgentType(0);
+	//		for (int i = 0; i < controlledTroops.Count; i++)
+	//		{
+	//			PlayerController controlledTroopPlayerController = controlledTroops[i].playerController;
+	//			controlledTroopPlayerController.richAI.enabled = true;
+	//			controlledTroopPlayerController.currentState = STATE.Following;
+	//			controlledTroopPlayerController.MoveToPosition(enemyAttackPlayer.transform.position + (controlledTroops[i].transform.position - troopObject.transform.position), false);
+	//			//controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
+	//			//controlledTroopPlayerController.RVOController.priority = 0.4f;
+	//		}
+	//		playerController.currentState = STATE.Following;
+	//		playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
+	//		//attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
+	//		//playerController.RVOController.priority = 0.4f;
+	//		//ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
+	//		troopObject.playerController.ignoreCommanderTurning = true;
+	//	}
+	//}
 
 	private void AttackNormalOtherTroops(TroopComponents enemyAttackPlayer)
 	{
 		richAI.radius = 0.5f;
 		seeker.traversableTags = GetAgentType(0);
 		playerController.currentState = STATE.Following;
-		attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
+		//attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
 		playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
 		//playerController.ignoreCommanderTurning = true;
 		//Collider[] coliders = Physics.OverlapSphere(enemyAttackPlayer.position, 5f, LayerMask.GetMask("Player"));
-		ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
+		//ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
 		for (int i = 0; i < controlledTroops.Count; i++)
 		{
-			controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
-			controlledTroops[i].attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
+			//controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
+			//controlledTroops[i].attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
 		}
 	}
 
 	private void AttackChargeOtherTroops(TroopComponents enemyAttackPlayer, bool hasMadeTurn)
 	{
 		playerController.currentState = STATE.Following;
-		attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
+		//attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
 		if (!hasMadeTurn)
 		{
 			positonToWalkTo = enemyAttackPlayer.transform.position + ((troopObject.transform.position - enemyAttackPlayer.transform.position).normalized * ((formationRadius / 2) + (enemyAttackPlayer.commanderScript.formationRadius / 2) + distanceFormPointToArmy));
 			//richAI.endReachedDistance = 1.3f;
 			playerController.MoveToPosition(positonToWalkTo, false);
-			Timing.RunCoroutine(CheckForDistanceCoroutine());
+			Timing.RunCoroutine(CheckForDistanceCoroutine(), playerController.clientId.ToString());
 		}
 		else
 		{
 			richAI.radius = 0.5f;
 			seeker.traversableTags = GetAgentType(0);
 			playerController.currentState = STATE.Following;
-			attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
+			//attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
 			playerController.MoveToPosition(enemyAttackPlayer.transform.position, false);
-			attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
-			ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
+			//attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
+			//ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
 			//Collider[] colliders = Physics.OverlapSphere(enemyAttackPlayer.position, AttackingSystem.attackSearchRange, LayerMask.GetMask("Player"));
 			TroopComponents[] colliders = new TroopComponents[2];
 			int y = 0;
@@ -346,7 +399,7 @@ public class CommanderScript : MonoBehaviour
 				if (colliders.Length > i)
 				{
 					controlledTroopPlayerController.MoveToPosition(colliders[i].transform.position, false);
-					controlledTroopPlayerController.troopObject.attackingSystem.enemyAttackPlayer = colliders[i];
+					//controlledTroopPlayerController.troopObject.attackingSystem.enemyAttackPlayer = colliders[i];
 				}
 				else
 				{
@@ -354,9 +407,9 @@ public class CommanderScript : MonoBehaviour
 						y = -1;
 					y++;
 					controlledTroopPlayerController.MoveToPosition(colliders[colliders.Length - y].transform.position, false);
-					controlledTroopPlayerController.troopObject.attackingSystem.enemyAttackPlayer = colliders[colliders.Length - y];
+					//controlledTroopPlayerController.troopObject.attackingSystem.enemyAttackPlayer = colliders[colliders.Length - y];
 				}
-				controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
+				//controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
 			}
 		}
 	}
@@ -367,7 +420,7 @@ public class CommanderScript : MonoBehaviour
 		Debug.Log("Stop Attack");
 		playerController.currentState = STATE.Idle;
 		playerController.ignoreCommanderTurning = false;
-		attackingSystem.StopRepeat();
+		//attackingSystem.StopRepeat();
 		//playerController.RVOController.priority = 0.5f;
 		playerController.currentWalkMode = WalkMode.Normal;
 		hasToWalk = false;
@@ -379,7 +432,7 @@ public class CommanderScript : MonoBehaviour
 			controlledTroops[i].transform.parent = troopObject.transform;
 			//controlledTroops[i].GetComponent<PlayerController>().RVOController.priority = 0.5f;
 			controlledTroops[i].playerController.currentState = STATE.attackGrid;
-			controlledTroops[i].attackingSystem.StopRepeat();
+			//controlledTroops[i].attackingSystem.StopRepeat();
 		}
 	}
 
@@ -417,108 +470,55 @@ public class CommanderScript : MonoBehaviour
 				hasToCheckDistance = false;
 				playerController.currentWalkMode = WalkMode.Normal;
 				hasToWalk = false;
-				SetAttackInForm(attackingSystem.enemyAttackPlayer, true);
+				//SetAttackInForm(attackingSystem.enemyAttackPlayer, true);
 			}
 			yield return Timing.WaitForSeconds(0.2f);
 		}
 	}
 
 
-	protected void SetLineAttack()
+	public void MakeAttackGrid(/*int width, int length, Vector3 startPoint, Vector3 widthDir, float deltaX*/ Vector3 lineLength, float deltaX)
 	{
-		//minAttackRange = float.PositiveInfinity;
-		//List<AttackingSystem> firstLine = new List<AttackingSystem>();
-		//int lines = FormationManager.GetLinesCount(formationId, controlledTroops.Count);
-		////die Linien setzten auf der Truppe und bei der ersten Riehe den niedrigsten Attack Range setzen
-		//for (int i = 0; i < controlledTroops.Count; i++)
-		//{
-		//	int line = FormationManager.GetLine(formationId, controlledTroops[i].playerController.transformOnAttackGrid, lines);
-		//	controlledTroops[i].attackingSystem.lineInFormation = line;
-		//	if (line == 0)
-		//	{
-		//		float attackRange = controlledTroops[i].playerController.attackRange;
-		//		if (attackRange < minAttackRange)
-		//			minAttackRange = attackRange;
-		//		firstLine.Add(controlledTroops[i].attackingSystem);
-		//	}
-		//	controlledTroops[i].transform.parent = troopObject.transform.parent;
-		//	controlledTroops[i].attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
-		//}
-		//for (int i = 0; i < firstLine.Count; i++)
-		//{
-		//	firstLine[i].frontLineMinAttackRange = minAttackRange;
-		//	firstLine[i].GetComponent<AttackingSystem>().StartInvokingRepeat(attackStyleAtMoment);
-		//}
-		//CancelInvoke();
-		//}
-		attackingLines = new List<TroopComponents>[20];
-		int maxLine = 0;
-		for (int i = 0; i < controlledTroops.Count; i++)
-		{
-			//wenn sterben, die Truppe hinten dran Informieren um seine Platz einzunehem, wenn schon tot oder weg, eine nächsten in der nächsten Riehe finden
-			int myLine = controlledTroops[i].attackingSystem.lineInFormation;
-			if (attackingLines[myLine - 1] == null)
-			{
-				attackingLines[myLine - 1] = new List<TroopComponents>();
-				maxLine++;
-			}
-			if (!attackingLines[myLine - 1].Contains(controlledTroops[i]))
-			{
-				attackingLines[myLine - 1].Add(controlledTroops[i]);
-			}
-			controlledTroops[i].richAI.enabled = true;
-			controlledTroops[i].richAI.canMove = true;
-			controlledTroops[i].richAI.onSearchPath += controlledTroops[i].playerController.UpdateEnemyTroopPoisition;
-			controlledTroops[i].playerController.isAttacking = true;
-			controlledTroops[i].transform.parent = null;
-		}
-		Array.Resize(ref attackingLines, maxLine);
-		richAI.onSearchPath += playerController.UpdateEnemyTroopPoisition;
-		playerController.isAttacking = true;
-		playerController.enemyTroop = attackingSystem.enemyAttackPlayer;
-	}
-
-	public void MakeAttackGrid(int width, int length, Vector3 startPoint, Vector3 widthDir)
-	{
-		float deltaX = 2f;
-		Vector3 lineLength = (Quaternion.Euler(0f, 90f, 0f) * widthDir).normalized;
-		int amountUnits = controlledTroops.Count + 1;
-		formationObject.formationObjects = new FormationChild[amountUnits];
-		tempAttackGridDir = lineLength;
-		formationObject.transform.rotation = Quaternion.LookRotation(lineLength, Vector3.up);
-		formationObject.transform.name = formationId.ToString();
-		int rest = amountUnits - width * (length - 1) - 1;
-		int commanderPlace = ((length-2) / 2 * width + rest) + width / 2;
+		////float deltaX = 2f;
+		//Vector3 lineLength = (Quaternion.Euler(0f, 90f, 0f) * widthDir).normalized;
+		//int amountUnits = controlledTroops.Count + 1;
+		//formationObject.formationObjects = new FormationChild[amountUnits];
+		//tempAttackGridDir = lineLength;
 		//formationObject.transform.rotation = Quaternion.LookRotation(lineLength, Vector3.up);
-		//relative to Commander and move whole thing with commander
-		for (int i = 0; i < length; i++)
-		{
-			Vector3 pointOnColumns = startPoint + lineLength * deltaX * i;
-			int offset = 0;
-			if (i == 0)
-			{
-				offset = (int)(width / 2f) - (int)((rest) / 2f);
-			}
-			for (int y = 0; y < width; y++)
-			{
-				if (i == 0 && y > rest)
-					break;
-				Vector3 pointOnRow = pointOnColumns + widthDir * deltaX * (y + offset);
-				int index = ((i - 1) * width) + y + rest + 1;
-				if (i == 0)
-					index = y;
+		//formationObject.transform.name = formationId.ToString();
+		//int rest = amountUnits - width * (length - 1);
+		//int commanderPlace = ((length-2) / 2 * width + rest) + width / 2;
+		////formationObject.transform.rotation = Quaternion.LookRotation(lineLength, Vector3.up);
+		////relative to Commander and move whole thing with commander
+		//for (int i = 0; i < length; i++)
+		//{
+		//	Vector3 pointOnColumns = startPoint + lineLength * deltaX * i;
+		//	int offset = 0;
+		//	if (i == 0)
+		//	{
+		//		offset = (int)(width / 2f) - (int)((rest) / 2f);
+		//	}
+		//	for (int y = 0; y < width; y++)
+		//	{
+		//		if (i == 0 && y > rest-1)
+		//			break;
+		//		Vector3 pointOnRow = pointOnColumns + widthDir * deltaX * (y + offset);
+		//		int index = ((i - 1) * width) + y + rest;
+		//		if (i == 0)
+		//			index = y;
 
-				if (index < commanderPlace)
-					index += 1;
-				else if (index == commanderPlace)
-				{
-					index = 0;
-					formationObject.transform.MoveWithoutChilds(pointOnRow);
-				}
-
-				formationObject.formationObjects[index] = new FormationChild(new Transform(pointOnRow, Quaternion.Identity, formationObject.transform), i, null, null);
-			}
-		}
+		//		if (index < commanderPlace)
+		//			index += 1;
+		//		else if (index == commanderPlace)
+		//		{
+		//			index = 0;
+		//			formationObject.transform.MoveWithoutChilds(pointOnRow);
+		//		}
+		//		Form1.SpawnPointAt(pointOnRow, Color.Red, 5);
+		//		formationObject.formationObjects[index] = new FormationChild(new Transform(pointOnRow, Quaternion.Identity, formationObject.transform), i, null, null);
+		//	}
+		//}
+		formationDeltaX = deltaX;
 		attackGrid = true;
 		Vector3 commanderToPos = formationObject.formationObjects[0].transform.position;
 		formationObject.transform.localPosition = Vector3.zero;
@@ -526,6 +526,10 @@ public class CommanderScript : MonoBehaviour
 		formationObject.transform.parent = troopObject.transform;
 		Form1.SpawnPointAt(formationObject.transform.position, Color.Blue, 10);
 		Form1.SpawnPointAt(formationObject.transform.position + formationObject.transform.forward * 10f, Color.AliceBlue, 10);
+		for (int i = 0; i < controlledTroops.Count; i++)
+		{
+			controlledTroops[i].transform.parent = null;
+		}
 		troopObject.playerController.StartHermitCurve(commanderToPos, lineLength);
 		//float radius;
 		//Vector3 pointBeforeFormation;

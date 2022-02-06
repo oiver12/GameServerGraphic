@@ -45,7 +45,7 @@ public class ArcherCommander : CommanderScript
 		richAI.radius = 0.5f;
 		//seeker.traversableTags = GetAgentType(0);
 		playerController.currentState = STATE.Following;
-		attackingSystem.enemyAttackPlayer = enemyAttackPlayer;
+		troopObject.newAttackSystem.enemyPlayer = enemyAttackPlayer;
 		if (!hasMadeTurn)
 		{
 			positonToWalkTo = enemyAttackPlayer.transform.position + ((troopObject.transform.position - enemyAttackPlayer.transform.position).normalized * playerController.myTroop.attackRadius);
@@ -56,8 +56,8 @@ public class ArcherCommander : CommanderScript
 		else
 		{
 			Debug.Log("StartFight");
-			ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
-			troopObject.attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
+			//ServerSend.StartFight(playerController.clientId, playerController.troopId, true, true, (int)attackStyleAtMoment, attackingSystem.frontLineMinAttackRange);
+			//troopObject.attackingSystem.StartInvokingRepeat(attackStyleAtMoment);
 		}
 	}
 
@@ -75,7 +75,7 @@ public class ArcherCommander : CommanderScript
 				hasToCheckDistance = false;
 				playerController.currentWalkMode = WalkMode.Normal;
 				hasToWalk = false;
-				SetAttackInForm(attackingSystem.enemyAttackPlayer, true);
+				SetAttackInForm(troopObject.newAttackSystem.enemyPlayer, true);
 			}
 			yield return Timing.WaitForSeconds(0.2f);
 		}

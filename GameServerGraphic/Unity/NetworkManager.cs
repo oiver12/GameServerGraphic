@@ -25,14 +25,14 @@ public static class NetworkManager
 		{
 			if (troop.klasse.IsFlagSet(TroopClass.Archer))
 			{
-				return new TroopComponents(new Transform(spawnPosition, Quaternion.Identity), new Seeker(), new RichAI(), new AttackingSystem(), new PlayerController(), new ArcherCommander());
+				return new TroopComponents(new Transform(spawnPosition, Quaternion.Identity), new Seeker(), new RichAI(), new PlayerController(), new ArcherCommander(), new NewAttackingSystem());
 			}
 			else
 			{
-				return new TroopComponents(new Transform(spawnPosition, Quaternion.Identity), new Seeker(), new RichAI(), new AttackingSystem(), new PlayerController(), new CommanderScript());
+				return new TroopComponents(new Transform(spawnPosition, Quaternion.Identity), new Seeker(), new RichAI(), new PlayerController(), new CommanderScript(), new NewAttackingSystem());
 			}
 		}
 		else
-			return new TroopComponents(new Transform(spawnPosition, Quaternion.Identity), new Seeker(), new RichAI(), new AttackingSystem(), new PlayerController(), null);
+			return new TroopComponents(new Transform(spawnPosition, Quaternion.Identity), new Seeker(), new RichAI(), new PlayerController(), null, new NewAttackingSystem());
 	}
 }
