@@ -29,7 +29,22 @@ namespace GameServerGraphic
 		public static List<Tuple<Transform, PictureBox>> troopsImages = new List<Tuple<Transform, PictureBox>>();
 		public static List<Tuple<Vector3, PictureBox>> otherPoints = new List<Tuple<Vector3, PictureBox>>();
 		public static int placedTroops = 0;
-		public static bool isPaused = false;
+		public static bool isPaused
+		{
+			get
+			{
+				return _isPaused;
+			}
+			set
+			{
+				_isPaused = value;
+				if (_isPaused)
+					buttonPause.ImageIndex = 1;
+				else
+					buttonPause.ImageIndex = 0;
+			}
+		}
+		static bool _isPaused = false;
 		const float minX = 70;
 		const float maxX = 494;
 		const float minZ = -239;
@@ -44,6 +59,7 @@ namespace GameServerGraphic
 		float walkSpeedGraphics = 500f;
 		float zoomSpeedGraphics = 0.75f;
 		static RichTextBox textBoxStatic;
+		static Button buttonPause;
 		static Vector3 firstPosition = new Vector3(float.NaN, float.NaN, float.NaN);
 		static Vector3 secondPosition = new Vector3(float.NaN, float.NaN, float.NaN);
 		static Vector3 thirdPosition = new Vector3(float.NaN, float.NaN, float.NaN);
@@ -129,6 +145,7 @@ namespace GameServerGraphic
 			button3.ImageList.Images.Add(Image.FromFile(@"..\..\Play_Icon.png"));
 			button3.ImageList.ImageSize = new Size(40, 40);
 			button3.ImageIndex = 0;
+			buttonPause = button3;
 			//MainThread();
 			Server.Start(50, 8000);
 		}
@@ -137,11 +154,29 @@ namespace GameServerGraphic
 		{
 
 			Console.WriteLine($"Main thread started. Running at {Constants.TICKS_PER_SEC} ticks per second.");
+			//Transform parent = new Transform(new Vector3(314, -62, 47), Quaternion.Euler(new Vector3(13, 20, 100)));
+			//Transform child = new Transform(new Vector3(300, -50, 10), Quaternion.Euler(new Vector3(20, 10, 50)), parent);
+			//parent.rotation = Quaternion.Euler(new Vector3(100, 200, 50));
+			//Debug.Log(child.position);
 			//TroopComponents troopTest = new TroopComponents(new Transform(new Vector3(374.1f, -67.59f, -8.1f), Quaternion.Identity), new Seeker(), new RichAI(), new AttackingSystem(), new PlayerController(), new CommanderScript());
 			//troopTest.seeker.StartPath(troopTest.transform.position, new Vector3(troopTest.transform.position.x + 10f, troopTest.transform.position.y, troopTest.transform.position.z), OnPathComplete);
 			DateTime _nextLoop = DateTime.Now;
 			while (isRunning)
 			{
+				//Transform parent = new Transform(new Vector3(314, -62, 47), Quaternion.Euler(new Vector3(13, 20, 100)));
+				//Transform child = new Transform(new Vector3(300, -50, 10), Quaternion.Euler(new Vector3(20, 10, 50)), parent);
+				//Transform child2 = new Transform(new Vector3(330, -50, 45), Quaternion.Euler(new Vector3(10, 0, 6)), parent);
+				//AddTransform(parent, 10, Color.Red);
+				//AddTransform(child, 10, Color.Blue);
+				//AddTransform(child2, 10, Color.Blue);
+				//Thread.Sleep(1000);
+				//Vector3 startEulerAngles = Quaternion.ToEulerAngles(parent.rotation);
+				//for (int i = 0; i < 1000; i++)
+				//{
+				//	//parent.position += new Vector3(1, 0, 0);
+				//	parent.rotation = parent.rotation * Quaternion.Euler(new Vector3(10, 0, 0));
+				//	Thread.Sleep(30);
+				//}
 				while (_nextLoop < DateTime.Now)
 				{
 					if (isPaused)
@@ -207,6 +242,7 @@ namespace GameServerGraphic
 				//troopsImages[i].Item2.Image = RotateImage(troopsImages[i].Item2.Image, -200f);
 				try
 				{
+					//Debug.Log("Jetzt");
 					Point test = GetInCam(troopsImages[i].Item1.position);
 					troopsImages[i].Item2.Location = new Point((int)test.X, (int)test.Y);
 					troopsImages[i].Item2.BringToFront();
@@ -314,11 +350,41 @@ namespace GameServerGraphic
 		{
 			PictureBox troopImage = new PictureBox();
 			troopImage.SizeMode = PictureBoxSizeMode.StretchImage;
-			troopImage.ClientSize = new Size(10, 10);
-			troopImage.Image = troopImagePrefab;
+			if(troopTransform.troopObject.commanderScript == null)
+				troopImage.ClientSize = new Size(7, 7);
+			else
+				troopImage.ClientSize = new Size(10 ,10);
+
+			if (troopTransform.troopObject.playerController.myClient.player.isClone)
+				troopImage.BackColor = Color.Red;
+			else
+				troopImage.BackColor = Color.Black;
 			troopsImages.Add(new Tuple<Transform, PictureBox>(troopTransform, troopImage));
 			UIThreadManager.ExecuteOnMainThread(() => myControls.Add(troopImage));
 			UIThreadManager.ExecuteOnMainThread(() => troopImage.MouseClick += new MouseEventHandler(panel1_MouseDown));
+		}
+
+		public static void AddTransform(Transform troopTransform, int size, Color color)
+		{
+			PictureBox troopImage = new PictureBox();
+			troopImage.SizeMode = PictureBoxSizeMode.StretchImage;
+			troopImage.ClientSize = new Size(size, size);
+			troopImage.BackColor = color;
+			troopsImages.Add(new Tuple<Transform, PictureBox>(troopTransform, troopImage));
+			UIThreadManager.ExecuteOnMainThread(() => myControls.Add(troopImage));
+			UIThreadManager.ExecuteOnMainThread(() => troopImage.MouseClick += new MouseEventHandler(panel1_MouseDown));
+		}
+
+		public static void ChanceTroopColor(Transform transform, Color color)
+		{
+			for (int i = 0; i < troopsImages.Count; i++)
+			{
+				if (troopsImages[i].Item1 == transform)
+				{
+					PictureBox pic = troopsImages[i].Item2;
+					pic.BackColor = color;
+				}
+			}
 		}
 
 		public static void RemoveTroop(Transform transform)
@@ -352,53 +418,49 @@ namespace GameServerGraphic
 
 		private void Form1_KeyPress(object sender, KeyPressEventArgs e)
 		{
-			if(e.KeyChar == 'w')
+			switch(e.KeyChar)
 			{
-				offsetFromCenter.y += walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-			if (e.KeyChar == 's')
-			{
-				offsetFromCenter.y -= walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-			if (e.KeyChar == 'a')
-			{
-				offsetFromCenter.x += walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-			if (e.KeyChar == 'd')
-			{
-				offsetFromCenter.x -= walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-
-			if(e.KeyChar == 'g')
-			{
-				firstPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				secondPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				thirdPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				fourthPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				UIThreadManager.ExecuteOnMainThread(() =>
-				{
-					for (int i = 0; i < otherPoints.Count; i++)
+				case 'w':
+					offsetFromCenter.y += walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 's':
+					offsetFromCenter.y -= walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 'a':
+					offsetFromCenter.x += walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 'd':
+					offsetFromCenter.x -= walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 'g':
+					firstPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					secondPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					thirdPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					fourthPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					UIThreadManager.ExecuteOnMainThread(() =>
 					{
-						myControls.Remove(otherPoints[i].Item2);
+						for (int i = 0; i < otherPoints.Count; i++)
+						{
+							myControls.Remove(otherPoints[i].Item2);
+						}
+						otherPoints.Clear();
 					}
-					otherPoints.Clear();
-				}
-				);
-				e.Handled = true;
-			}
-			//escape Taste
-			if(e.KeyChar == 27)
-			{
-				isRunning = false;
-				this.Close();
+					);
+					e.Handled = true;
+					break;
+				case (char)27:
+					isRunning = false;
+					this.Close();
+					break;
+
 			}
 		}
 
@@ -444,10 +506,14 @@ namespace GameServerGraphic
 					TroopComponents thisTroops = troopsImages[i].Item1.troopObject;
 					PlayerController.playerIdNowStop = i;
 					isPaused = true;
-					for (int y = 0; y < thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects.Length; y++)
+					if(thisTroops.playerController.Mycommander != null)
 					{
-						SpawnPointAt(thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects[y].transform.position, Color.Red, 5);
+						for (int y = 0; y < thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects.Length; y++)
+						{
+							SpawnPointAt(thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects[y].transform.position, Color.Beige, 5);
+						}
 					}
+					//ChanceTroopColor(thisTroops.transform, Color.Pink);
 					//string output = thisTroops.SerializeObject();
 					Debug.Log(thisTroops.transform.name);
 					//isPaused = false;
@@ -619,7 +685,8 @@ namespace GameServerGraphic
                 foreach(var placedTroop in Server.clients[clientId].player.placedTroops)
                 {
 					placedTroop.gameObject.playerController.myClient = Server.clients[clientId];
-					placedTroop.gameObject.attackingSystem.myClient = Server.clients[clientId];
+					placedTroop.gameObject.newAttackSystem.myClient = Server.clients[clientId];
+					placedTroop.gameObject.newAttackSystem.myClient = Server.clients[clientId];
 					placedTroop.gameObject.richAI.InitializeAfterDeserialized();
 					AddTroop(placedTroop.gameObject.transform);
                 }
@@ -678,10 +745,6 @@ namespace GameServerGraphic
 		private void button3_Click(object sender, EventArgs e)
 		{
 			isPaused = !isPaused;
-			if (isPaused)
-				button3.ImageIndex = 1;
-			else
-				button3.ImageIndex = 0;
 		}
 #endif
 

@@ -94,6 +94,7 @@ public class Player
 				return;
 			}*/
 			commander.troopObject.playerController.transformOnAttackGrid = commander.formationObject.formationObjects[0];
+			commander.troopObject.playerController.transformOnAttackGrid.troopOnFormationChild = commander.troopObject;
 			transformOnAttackGrid = commander.formationObject.formationObjects[placedTroopsInCommander + 1];
 			spawnPosition = transformOnAttackGrid.transform.position;
 		}
@@ -130,7 +131,8 @@ public class Player
 		placedTroops.Add(new PlacedTroopStruct(troop, troopId, troopObject, troop.maxHealth));
 		troopsKDTree.Add(troopObject);
 		playerControllerTroop.Start(troopObject);
-		troopObject.attackingSystem.Start(troopObject);
+		//troopObject.attackingSystem.Start(troopObject);
+		troopObject.newAttackSystem.Start(troopObject);
 		if (troopObject.commanderScript != null)
 			troopObject.commanderScript.Start(troopObject);
 		//TODO Check if Player can place
@@ -167,6 +169,7 @@ public class Player
 			playerControllerTroop.currentWalkMode = WalkMode.InAttackGrid;
 			playerControllerTroop.formationId = commander.formationId;
 			playerControllerTroop.transformOnAttackGrid = transformOnAttackGrid;
+			playerControllerTroop.transformOnAttackGrid.troopOnFormationChild = playerControllerTroop.troopObject;
 			playerControllerTroop.currentState = STATE.attackGrid;
 			float distance = (playerControllerTroop.troopObject.transform.position - commander.troopObject.transform.position).magnitude;
 			commander.SetAgentRadius(distance);
@@ -200,6 +203,7 @@ public class Player
 			playerControllerTroop.currentWalkMode = WalkMode.InAttackGrid;
 			playerControllerTroop.formationId = commanderObject.commanderScript.formationId;
 			playerControllerTroop.transformOnAttackGrid = transformOnAttackGrid;
+			playerControllerTroop.transformOnAttackGrid.troopOnFormationChild = playerControllerTroop.troopObject;
 			playerControllerTroop.currentState = STATE.attackGrid;
 			float tempDistance = (playerControllerTroop.troopObject.transform.position - commanderObject.transform.position).sqrMagnitude;
 			if (tempDistance > distance)
@@ -389,6 +393,7 @@ public class Player
 				Debug.Log("Reduce Troop");
 				commander.controlledTroops[y].playerController.currentState = STATE.Idle;
 				commander.controlledTroops[y].playerController.Mycommander = null;
+				commander.controlledTroops[y].playerController.transformOnAttackGrid.troopOnFormationChild = null;
 				commander.controlledTroops[y].playerController.transformOnAttackGrid = null;
 			}
 		}
@@ -398,8 +403,8 @@ public class Player
 		}
 		int index = ownTroop.gameObject.playerController.troopId;
 		placedTroops.RemoveAt(index);
-		ownTroop.gameObject.DestroyObject();
 		Form1.RemoveTroop(ownTroop.gameObject.transform);
+		ownTroop.gameObject.DestroyObject();
 		UpdateTroopId();
 		troopsKDTree.RemoveAt(index);
 		troopsKDTree.UpdatePositions();
@@ -443,6 +448,5 @@ public class Player
 		placebelTroops.Clear();
 		troopsKDTree.Clear();
 	}
-
 
 }

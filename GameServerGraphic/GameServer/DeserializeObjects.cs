@@ -108,12 +108,12 @@ namespace GameServer
 					int line = packet.ReadInt();
 					int inFrontIndex = packet.ReadInt();
 					int inBackIndex = packet.ReadInt();
-					Transform inFront = null;
-					Transform inBack = null;
+					FormationChild inFront = null;
+					FormationChild inBack = null;
 					if (inFrontIndex != -1)
-						inFront = formationComponentsObject.transform.childs[inFrontIndex];
+						inFront = formationChilds[inFrontIndex];
 					if (inBackIndex != -1)
-						inBack = formationComponentsObject.transform.childs[inBackIndex];
+						inBack = formationChilds[inBackIndex];
 
 					formationChilds[y] = new FormationChild(formationComponentsObject.transform.childs[y], line, inFront, inBack);
 				}

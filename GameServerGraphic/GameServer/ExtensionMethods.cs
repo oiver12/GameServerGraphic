@@ -344,5 +344,10 @@ namespace GameServer
 			vector3.Z *= num;
 			return vector3;
 		}
+
+		public static double NextDouble(this Random random, double minValue, double maxValue)
+		{
+			return random.NextDouble() * (maxValue - minValue) + minValue;
+		}
 	}
 }

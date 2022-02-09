@@ -129,7 +129,7 @@ namespace Pathfinding {
 		/// <summary>Distance to <see cref="steeringTarget"/> in the movement plane</summary>
 		protected float distanceToSteeringTarget = float.PositiveInfinity;
 
-		protected readonly List<Vector3> nextCorners = new List<Vector3>();
+		public readonly List<Vector3> nextCorners = new List<Vector3>();
 		protected readonly List<Vector3> wallBuffer = new List<Vector3>();
 
 		public bool traversingOffMeshLink { get; protected set; }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using GameServerGraphic;
+using System.Windows.Media.Media3D;
 
 
 namespace GameServer
@@ -55,6 +56,11 @@ namespace GameServer
 			}
 			set
 			{
+				if ((m_postion - value).magnitude > 36f && troopObject != null && troopObject.playerController.currentWalkMode == WalkMode.InNewBoxAttackGrid)
+				{
+					Form1.isPaused = true;
+					Debug.Log((m_postion - value).magnitude);
+				}
 				Vector3 translation = value - m_postion;
 				for (int i = 0; i < childs.Count; i++)
 				{
@@ -78,20 +84,33 @@ namespace GameServer
 					throw new System.Exception("Rot was NaN");
 
 				var moveMatrix = System.Numerics.Matrix4x4.CreateFromQuaternion((value * Quaternion.Inverse(m_rotation)).ToSytemNumericQuaternion());
+				moveMatrix *= System.Numerics.Matrix4x4.CreateScale(1);
 				m_rotation = value;
 				for (int i = 0; i < childs.Count; i++)
 				{
 					//die Rotationsmatrix des Kindes
 					var childMatrix = System.Numerics.Matrix4x4.CreateFromQuaternion(childs[i].rotation.ToSytemNumericQuaternion());
+					childMatrix *= System.Numerics.Matrix4x4.CreateScale(1);
 					//anwenden der Rotationsmatrix auf das Kind und dann schlussendlich in die Einzelteile zerlegen
+
 					childMatrix = childMatrix * moveMatrix;
 					System.Numerics.Matrix4x4.Decompose(childMatrix, out var scale, out var Localrotation, out var translation);
 					childs[i].rotation = (Quaternion)Localrotation;
+					if (troopObject != null && troopObject.playerController.currentWalkMode == WalkMode.InNewBoxAttackGrid)
+						Debug.Log("Test");
 					//die Position ist: Rotationspunkt verschieben in den Ursprung, Rotieren, Punkt wieder zurück verschieben
 					childs[i].position = position + (Vector3)moveMatrix.MutliplyPoint((childs[i].m_postion - position).ToSytemNumericVector3());
 					//Debug.Log(Quaternion.ToEulerAngles((Quaternion)Localrotation) + "LOc");
 					//Debug.Log(position + (Vector3)moveMatrix.MutliplyPoint((childs[i].m_postion - position).ToSytemNumericVector3()));
 				}
+				//Quaternion rot = value * Quaternion.Inverse(m_rotation);
+				//RotateTransform3D rotTrans = new RotateTransform3D(new QuaternionRotation3D(new System.Windows.Media.Media3D.Quaternion(rot.x, rot.y, rot.z, rot.w)), new Point3D(position.x, position.y, position.z));
+				//for (int i = 0; i < childs.Count; i++)
+				//{
+				//	Point3D point = rotTrans.Transform(new Point3D(childs[i].position.x, childs[i].position.y, childs[i].position.z));
+				//	childs[i].position = new Vector3((float)point.X, (float)point.Y, (float)point.Z);
+
+				//}
 			}
 		}
 
@@ -127,8 +146,10 @@ namespace GameServer
 				{
 					m_parent.childs.Remove(this);
 				}
-				if(!value.childs.Contains(this))
+				if (!value.childs.Contains(this))
+				{
 					value.childs.Add(this);
+				}
 
 				m_parent = value;
 			}
