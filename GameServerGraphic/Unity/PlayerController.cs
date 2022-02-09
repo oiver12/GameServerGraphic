@@ -71,7 +71,7 @@ public class PlayerController : MonoBehaviour
 	const float circleWalkSendTime = 0.1f;
 	const float toAttackGridBezierCurveSendTime = 0.5f;
 
-	public static int playerIdNowStop = 0;
+	public static int playerIdNowStop = -1;
 
 	bool waitAfterStart = false;
 	bool setOneTime;
@@ -122,6 +122,8 @@ public class PlayerController : MonoBehaviour
 
 	public void Update()
 	{
+		if (playerIdNowStop == troopId)
+			Debug.Log("Here");
 		if (!enabled)
 			return;
 		if (!isAttacking)
@@ -137,8 +139,6 @@ public class PlayerController : MonoBehaviour
 
 	private void NormalUpdate()
 	{
-		//if (troopObject.commanderScript != null)
-		//	Debug.Log(currentWalkMode.ToString() + currentState.ToString());
 		if (!commanderIsTurning || troopObject.commanderScript != null && troopObject.commanderScript.commanderWalkDuringRotation)
 		{
 			/*if (path == null)
@@ -243,7 +243,6 @@ public class PlayerController : MonoBehaviour
 						//if ((troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance && Time.time - startTimeTurnCommander > 1f)
 						if ((troopObject.transform.position - transformOnAttackGrid.transform.position).sqrMagnitude <= richAI.endReachedDistance * richAI.endReachedDistance && Time.time - Mycommander.playerController.startTimeTurnCommander > 1f)
 						{
-							Debug.Log("OK");
 							ReachedEndOfPath();
 							return;
 						}
@@ -479,10 +478,12 @@ public class PlayerController : MonoBehaviour
 		{
 			TroopComponents nearestObject = myClient.enemyClient.player.FindNearestTroop(position);
 			float checkDistance = 2f;
+			Debug.Log("Check if Attack");
 			if (nearestObject.playerController.Mycommander != null)
 			{
 				checkDistance = nearestObject.playerController.Mycommander.commanderScript.formationRadius;
 				nearestObject = nearestObject.playerController.Mycommander;
+				Debug.Log("Check if Attack" + checkDistance.ToString());
 			}
 			float distanceToEnemy = (position - nearestObject.transform.position).sqrMagnitude;
 			if (distanceToEnemy < checkDistance * checkDistance)
@@ -602,7 +603,27 @@ public class PlayerController : MonoBehaviour
 		currentState = STATE.Moving;
 		currentWalkMode = WalkMode.BezierCurveWalk;
 		Vector3 moveDir = bezierCurve.Move(richAI.maxSpeed);
-		troopObject.commanderScript.formationObject.transform.rotation = Quaternion.LookRotation(moveDir, Vector3.up);
+		if (troopObject.commanderScript != null)
+		{
+			if (troopObject.commanderScript.troopObject.playerController.Mycommander != null)
+			{
+				for (int y = 0; y < troopObject.commanderScript.troopObject.playerController.Mycommander.commanderScript.formationObject.formationObjects.Length; y++)
+				{
+					Form1.SpawnPointAt(troopObject.commanderScript.troopObject.playerController.Mycommander.commanderScript.formationObject.formationObjects[y].transform.position, System.Drawing.Color.Beige, 5);
+				}
+			}
+		}
+		troopObject.commanderScript.formationObject.transform.rotation = Quaternion.LookRotation(moveDir, Vector3.up); //TODO Skaliert!!!!
+		if (troopObject.commanderScript != null)
+		{
+			if (troopObject.commanderScript.troopObject.playerController.Mycommander != null)
+			{
+				for (int y = 0; y < troopObject.commanderScript.troopObject.playerController.Mycommander.commanderScript.formationObject.formationObjects.Length; y++)
+				{
+					Form1.SpawnPointAt(troopObject.commanderScript.troopObject.playerController.Mycommander.commanderScript.formationObject.formationObjects[y].transform.position, System.Drawing.Color.DarkGreen, 5);
+				}
+			}
+		}
 		troopObject.commanderScript.SetFormation(true);
 		bezierCurve.StartMove();
 		troopObject.commanderScript.formationObject.transform.rotation = troopObject.transform.rotation;

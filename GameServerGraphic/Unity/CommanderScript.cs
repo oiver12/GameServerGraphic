@@ -27,7 +27,7 @@ public class CommanderScript : MonoBehaviour
 	public float minAttackRange = 0f;
 	public float formationDeltaX = 5f;
 	public Vector3 tempAttackGridDir;
-	public AttackStyle attackStyleAtMoment = AttackStyle.Normal;
+	public AttackStyle attackStyleAtMoment = AttackStyle.Charge;
 	public FormationObject formationObject;
 	//public NormalComponentsObject circleRenderer;
 	public List<Transform> attackTroops = new List<Transform>();

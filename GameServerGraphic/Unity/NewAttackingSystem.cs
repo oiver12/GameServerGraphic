@@ -26,7 +26,7 @@ namespace GameServer
 		float randomTimeDelayChargeAttack = 10f;
 		bool distanceChecking = false;
 		bool isAttacking = false;
-		AttackStyle attackStyle = AttackStyle.Normal;
+		AttackStyle attackStyle = AttackStyle.Charge;
 		TroopComponents troopObject;
 		PlayerController playerController;
 
@@ -100,12 +100,13 @@ namespace GameServer
 							}
 							else if (enemyPlayer == null || enemyPlayer.isDestroyed)
 								enemyPlayer = null;
+							//wenn die Truppe eine gegnerische Truppe hat zum angreifen
 							else
 							{
+								//wenn in AttackRadius angreifen
 								if ((enemyPlayer.transform.position - troopObject.transform.position).sqrMagnitude < playerController.attackRange * playerController.attackRange)
 								{
 									GameServerGraphic.Form1.ChanceTroopColor(troopObject.transform, System.Drawing.Color.Pink);
-									//playerController.Mycommander.richAI.canMove = false;
 									troopObject.richAI.destination = troopObject.transform.position;
 									if (Time.time - lastTimeAttack > playerController.attackSpeed)
 									{
@@ -194,10 +195,10 @@ namespace GameServer
 			TroopComponents enemyNearest = myClient.enemyClient.player.FindNearestTroop(troopObject.transform.position);
 			if (!troopOnFirstLine && enemyNearest.newAttackSystem.enemyTroopAttacking < maxTroopsOnOneTroops)
 				Debug.Log((enemyNearest.transform.position - troopObject.transform.position).sqrMagnitude);
+			if (!troopOnFirstLine)
+				Debug.Log("OK Here Attack" + enemyNearest.newAttackSystem.enemyTroopAttacking.ToString());
 			if (enemyNearest.newAttackSystem.enemyTroopAttacking < maxTroopsOnOneTroops && (troopOnFirstLine || (enemyNearest.transform.position - troopObject.transform.position).sqrMagnitude < distanceTroopInBackAttack * distanceTroopInBackAttack))
 			{
-				if (!troopOnFirstLine)
-					Debug.Log("OK Here Attack");
 				ChooseEnemyTroop(enemyNearest);
 				return enemyPlayer;
 			}

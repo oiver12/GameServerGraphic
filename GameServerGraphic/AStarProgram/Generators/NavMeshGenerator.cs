@@ -96,6 +96,7 @@ namespace Pathfinding {
 		}
 
 		public override GraphTransform CalculateTransform () {
+			Matrix4x4 sd = new Matrix4x4();
 			Vector3 sourcemeshminandsclae = new Vector3(-106.6f, -69.7f, -258.7f);
 			return new GraphTransform(Matrix4x4.TRS(offset, Quaternion.Euler(rotation), Vector3.one) * Matrix4x4.TRS(sourcemeshminandsclae, Quaternion.Identity, Vector3.one));
 			//return new GraphTransform(Matrix4x4.TRS(offset, Quaternion.Euler(rotation), Vector3.one) * Matrix4x4.TRS(sourceMesh != null ? sourceMesh.bounds.min * scale : cachedSourceMeshBoundsMin * scale, Quaternion.Identity, Vector3.one));

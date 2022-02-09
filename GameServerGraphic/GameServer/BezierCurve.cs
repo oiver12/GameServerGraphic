@@ -106,7 +106,6 @@ namespace GameServer
 				angleSecondDir = Vector2.Angle(secondPos2 - firstPos2, secondDir2);
 			}
 			lengthFirstDir = ExtensionMethods.Map(angleMultiplicatorMin, angleMultiplicatorMax, 0, 180, angleFirstDir) * radius;
-			//Debug.Log(angleSecondDir);
 			lengthSecondDir = ExtensionMethods.Map(angleMultiplicatorMin, angleMultiplicatorMax, 0, 180, angleSecondDir) * radius;
 			firstDir2 *= lengthFirstDir;
 			secondDir2 *= lengthSecondDir;

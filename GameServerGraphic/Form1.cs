@@ -418,53 +418,49 @@ namespace GameServerGraphic
 
 		private void Form1_KeyPress(object sender, KeyPressEventArgs e)
 		{
-			if(e.KeyChar == 'w')
+			switch(e.KeyChar)
 			{
-				offsetFromCenter.y += walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-			if (e.KeyChar == 's')
-			{
-				offsetFromCenter.y -= walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-			if (e.KeyChar == 'a')
-			{
-				offsetFromCenter.x += walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-			if (e.KeyChar == 'd')
-			{
-				offsetFromCenter.x -= walkSpeedGraphics * Time.deltaTime;
-				mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
-				e.Handled = true;
-			}
-
-			if(e.KeyChar == 'g')
-			{
-				firstPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				secondPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				thirdPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				fourthPosition = new Vector3(float.NaN, float.NaN, float.NaN);
-				UIThreadManager.ExecuteOnMainThread(() =>
-				{
-					for (int i = 0; i < otherPoints.Count; i++)
+				case 'w':
+					offsetFromCenter.y += walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 's':
+					offsetFromCenter.y -= walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 'a':
+					offsetFromCenter.x += walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 'd':
+					offsetFromCenter.x -= walkSpeedGraphics * Time.deltaTime;
+					mapPicture.Location = new Point((int)((mapSizeX / 2) - mapPicture.Size.Width / 2 + offsetFromCenter.x), (int)((mapSizeY / 2) - mapPicture.Size.Height / 2 + offsetFromCenter.y));
+					e.Handled = true;
+					break;
+				case 'g':
+					firstPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					secondPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					thirdPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					fourthPosition = new Vector3(float.NaN, float.NaN, float.NaN);
+					UIThreadManager.ExecuteOnMainThread(() =>
 					{
-						myControls.Remove(otherPoints[i].Item2);
+						for (int i = 0; i < otherPoints.Count; i++)
+						{
+							myControls.Remove(otherPoints[i].Item2);
+						}
+						otherPoints.Clear();
 					}
-					otherPoints.Clear();
-				}
-				);
-				e.Handled = true;
-			}
-			//escape Taste
-			if(e.KeyChar == 27)
-			{
-				isRunning = false;
-				this.Close();
+					);
+					e.Handled = true;
+					break;
+				case (char)27:
+					isRunning = false;
+					this.Close();
+					break;
+
 			}
 		}
 
@@ -510,10 +506,13 @@ namespace GameServerGraphic
 					TroopComponents thisTroops = troopsImages[i].Item1.troopObject;
 					PlayerController.playerIdNowStop = i;
 					isPaused = true;
-					//for (int y = 0; y < thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects.Length; y++)
-					//{
-					//	SpawnPointAt(thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects[y].transform.position, Color.Beige, 5);
-					//}
+					if(thisTroops.playerController.Mycommander != null)
+					{
+						for (int y = 0; y < thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects.Length; y++)
+						{
+							SpawnPointAt(thisTroops.playerController.Mycommander.commanderScript.formationObject.formationObjects[y].transform.position, Color.Beige, 5);
+						}
+					}
 					//ChanceTroopColor(thisTroops.transform, Color.Pink);
 					//string output = thisTroops.SerializeObject();
 					Debug.Log(thisTroops.transform.name);
